@@ -1,6 +1,11 @@
 plugins {
     id 'java'
+    id 'application'
     id 'checkstyle'
+}
+
+application {
+    mainClass = 'com.fmi.myfitnesspal.cli.Main'
 }
 
 group = 'com.fmi'
@@ -24,6 +29,10 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core:5.11.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
+}
+
+run {
+    standardInput = System.in
 }
 
 test {
