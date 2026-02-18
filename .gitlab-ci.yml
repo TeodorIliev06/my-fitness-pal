@@ -1,0 +1,42 @@
+image: eclipse-temurin:17
+
+stages:
+  - build
+  - verify
+
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+before_script:
+  - export GRADLE_USER_HOME=`pwd`/.gradle
+
+.push_gradle_cache:
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    policy: push
+    paths:
+      - build
+      - .gradle
+
+.pull_gradle_cache:
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    policy: pull
+    paths:
+      - build
+      - .gradle
+
+compile:
+  extends: .push_gradle_cache
+  stage: build
+  script: ./gradlew compileJava compileTestJava
+
+unit test:
+  stage: verify
+  extends: .pull_gradle_cache
+  script: ./gradlew test
+
+checkstyle:
+  stage: verify
+  extends: .pull_gradle_cache
+  script: ./gradlew checkstyleMain checkstyleTest

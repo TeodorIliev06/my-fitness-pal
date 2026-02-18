@@ -1,0 +1,49 @@
+package com.fmi.myfitnesspal.command.food;
+
+import com.fmi.myfitnesspal.command.ExecutableCommand;
+import com.fmi.myfitnesspal.exception.InvalidCommandException;
+import com.fmi.myfitnesspal.food.FoodDiary;
+import com.fmi.myfitnesspal.food.EatingTime;
+import com.fmi.myfitnesspal.food.FoodId;
+
+
+import com.fmi.myfitnesspal.constants.GlobalConstants;
+
+import java.time.LocalDate;
+import java.util.List;
+import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
+import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseEatingTime;
+import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDate;
+
+public final class RemoveFoodCommand implements ExecutableCommand {
+    private static final String COMMAND_NAME = "remove-food";
+    private static final int ARGUMENTS_COUNT = 4;
+
+    private final FoodDiary diary;
+
+    public RemoveFoodCommand(FoodDiary diary) {
+        this.diary = diary;
+    }
+
+    @Override
+    public String execute(List<String> arguments) throws InvalidCommandException {
+        validateArgumentsCount(arguments, ARGUMENTS_COUNT);
+
+        LocalDate date = parseDate(arguments.get(0));
+        EatingTime eatingTime = parseEatingTime(arguments.get(1));
+        FoodId id = new FoodId(arguments.get(2), arguments.get(3));
+        this.diary.removeFood(date, eatingTime, id);
+
+        return GlobalConstants.SUCCESSFULLY_REMOVED_FOOD_MESSAGE;
+    }
+
+    @Override
+    public String name() {
+        return COMMAND_NAME;
+    }
+
+    @Override
+    public String getHelp() {
+        return "Usage: " + COMMAND_NAME + " <date> <eatingTime> <foodBrand> <foodDescription>";
+    }
+}
