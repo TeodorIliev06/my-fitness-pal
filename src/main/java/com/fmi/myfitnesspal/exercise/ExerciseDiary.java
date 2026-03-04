@@ -3,9 +3,11 @@ package com.fmi.myfitnesspal.exercise;
 import com.fmi.myfitnesspal.exception.UnknownExerciseException;
 
 import java.time.LocalDate;
+import java.time.temporal.IsoFields;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class ExerciseDiary {
     Map<LocalDate, DailyExerciseDiary> diary;
@@ -42,6 +44,13 @@ public final class ExerciseDiary {
             diary.put(date, new DailyExerciseDiary(exercisePool));
         }
         return diary.get(date).getBurnedDailyCalories();
+    }
+
+    public List<CardioExercise> getCardioExercisesByWeekNumber(int weekNumber) {
+        return diary.keySet().stream()
+                .filter(date -> date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) == weekNumber)
+                .flatMap(date -> diary.get(date).getDailyCardioExercises().stream())
+                .collect(Collectors.toList());
     }
 
     private boolean isDiaryEmptyOn(LocalDate date) {

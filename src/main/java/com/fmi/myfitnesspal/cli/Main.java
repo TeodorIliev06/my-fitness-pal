@@ -13,6 +13,7 @@ import com.fmi.myfitnesspal.command.exercise.RemoveExerciseCommand;
 import com.fmi.myfitnesspal.command.exercise.ShowCardioExercisesCommand;
 import com.fmi.myfitnesspal.command.exercise.ShowDailyExerciseCommand;
 import com.fmi.myfitnesspal.command.exercise.ShowStrengthExercisesCommand;
+import com.fmi.myfitnesspal.command.exercise.ShowWeeklyCardioCommand;
 import com.fmi.myfitnesspal.command.exercise.ShowWorkoutsCommand;
 import com.fmi.myfitnesspal.command.food.RemoveFoodCommand;
 import com.fmi.myfitnesspal.command.food.AddFoodCommand;
@@ -22,6 +23,7 @@ import com.fmi.myfitnesspal.command.food.ShowMealsCommand;
 import com.fmi.myfitnesspal.command.food.ShowFoodsCommand;
 import com.fmi.myfitnesspal.command.food.CreateMealCommand;
 import com.fmi.myfitnesspal.command.food.CreateFoodCommand;
+import com.fmi.myfitnesspal.command.food.ShowWeeklyCaloriesCommand;
 import com.fmi.myfitnesspal.command.user.RegisterNewUserCommand;
 import com.fmi.myfitnesspal.command.water.RemoveWaterCommand;
 import com.fmi.myfitnesspal.command.water.RemoveWaterPortionCommand;
@@ -36,6 +38,7 @@ import com.fmi.myfitnesspal.water.WaterDiary;
 import com.fmi.myfitnesspal.command.water.AddWaterCommand;
 import com.fmi.myfitnesspal.command.water.AddWaterPortionCommand;
 import com.fmi.myfitnesspal.command.water.GetWaterCommand;
+
 
 import java.util.Scanner;
 
@@ -82,6 +85,7 @@ public final class Main {
         registry.addCommand(new AddMealCommand(foodDiary, mealPool));
         registry.addCommand(new ShowMealsCommand(foodDiary));
         registry.addCommand(new RemoveMealCommand(foodDiary));
+        registry.addCommand(new ShowWeeklyCaloriesCommand(foodDiary));
         registry.addCommand(new HelpCommand(registry));
         registry.addCommand(new RegisterNewUserCommand(scanner, userHolder, userRegistration));
         registry.addCommand(new CreateCardioExerciseCommand(exercisePool));
@@ -94,5 +98,6 @@ public final class Main {
         registry.addCommand(new ShowDailyExerciseCommand(exerciseDiary));
         registry.addCommand(new ShowStrengthExercisesCommand(exercisePool));
         registry.addCommand(new ShowWorkoutsCommand(exercisePool));
+        registry.addCommand(new ShowWeeklyCardioCommand(exerciseDiary));
     }
 }
