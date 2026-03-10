@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'checkstyle'
+    id 'jacoco'
 }
 
 application {
@@ -22,6 +23,9 @@ java {
 
 checkstyle {
     toolVersion '10.0'
+    // This ensures Checkstyle doesn't stop the build locally if you want to see all errors
+    ignoreFailures = false
+    showViolations = true
 }
 
 dependencies {
@@ -37,4 +41,48 @@ run {
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+
+    if (project.hasProperty('ciJacoco')) {
+        ignoreFailures = true
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+def jacocoExcludes = [
+        "**/Main.class",
+        "org/external/**/*.class"
+]
+
+tasks.withType(JacocoReport).configureEach {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: jacocoExcludes)
+    }))
+}
+
+tasks.withType(JacocoCoverageVerification).configureEach {
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.8
+            }
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.75
+            }
+        }
+    }
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: jacocoExcludes)
+    }))
 }
