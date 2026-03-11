@@ -1,11 +1,10 @@
 package com.fmi.myfitnesspal.command.water;
 
-import com.fmi.myfitnesspal.command.ExecutableCommand;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import com.fmi.myfitnesspal.water.WaterDiary;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,12 +17,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public final class AddWaterPortionTest {
     @Mock
     private WaterDiary diaryMock;
-    private ExecutableCommand command;
 
-    @BeforeEach
-    void initialize() {
-        command = new AddWaterPortionCommand(diaryMock);
-    }
+    @InjectMocks
+    private AddWaterPortionCommand command;
 
     @Test
     void testExecuteValidCommand() throws InvalidCommandException {

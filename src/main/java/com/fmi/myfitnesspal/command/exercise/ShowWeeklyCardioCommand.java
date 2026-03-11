@@ -57,7 +57,7 @@ public final class ShowWeeklyCardioCommand implements ExecutableCommand {
     }
 
     private String buildReport(WeeklyCardioSummary summary) {
-        return String.format("Week %d: burned %d kcal, time spent %s",
+        return String.format("Week %d: burned %d calories, time spent %s",
                 summary.weekNumber(),
                 summary.burnedCalories(),
                 formatDuration(summary.totalMinutes()));
