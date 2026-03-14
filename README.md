@@ -1,5 +1,5 @@
-[![pipeline status](https://gitlab.com/clean-code-fmi/MyFitnessPal2026/badges/main/pipeline.svg)](https://gitlab.com/clean-code-fmi/MyFitnessPal2026/-/pipelines/latest)
-[![coverage report](https://gitlab.com/clean-code-fmi/MyFitnessPal2026/badges/main/coverage.svg)](https://gitlab.com/clean-code-fmi/MyFitnessPal2026/-/pipelines/latest)
+[![pipeline status](https://gitlab.com/TeodorIliev06/MyFitnessPal2026/badges/main/pipeline.svg)](https://gitlab.com/TeodorIliev06/MyFitnessPal2026/-/pipelines/latest)
+[![coverage report](https://gitlab.com/TeodorIliev06/MyFitnessPal2026/badges/main/coverage.svg)](https://gitlab.com/TeodorIliev06/MyFitnessPal2026/-/pipelines/latest)
 
 # Intro
 A simple project with java 17, gradle, junit and checkstyle. You only need JDK 17 or later to run the project.

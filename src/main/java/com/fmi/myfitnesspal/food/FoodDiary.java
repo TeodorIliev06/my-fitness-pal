@@ -3,9 +3,11 @@ package com.fmi.myfitnesspal.food;
 import com.fmi.myfitnesspal.constants.GlobalConstants;
 
 import java.time.LocalDate;
+import java.time.temporal.IsoFields;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class FoodDiary {
 
@@ -51,6 +53,13 @@ public final class FoodDiary {
     public List<Meal> getMealsByDateAndEatingTime(LocalDate date, EatingTime eatingTime) {
         validateDate(date);
         return this.diary.get(date).getMealsByEatingTime(eatingTime);
+    }
+
+    public List<Food> getFoodsByWeekNumber(int weekNumber) {
+        return diary.keySet().stream()
+                .filter(date -> date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) == weekNumber)
+                .flatMap(date -> diary.get(date).getAllFoods().stream())
+                .collect(Collectors.toList());
     }
 
     private boolean isDailyDiaryEmpty(LocalDate date) {

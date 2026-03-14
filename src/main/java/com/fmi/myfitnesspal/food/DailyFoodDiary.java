@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Collections;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class DailyFoodDiary {
 
@@ -54,6 +56,13 @@ public final class DailyFoodDiary {
 
     public List<Food> getFoodsByEatingTime(EatingTime eatingTime) {
         return Collections.unmodifiableList(this.foods.get(eatingTime));
+    }
+
+    public List<Food> getAllFoods() {
+        return Stream.concat(
+                foods.values().stream().flatMap(List::stream),
+                meals.values().stream().flatMap(List::stream).flatMap(meal -> meal.getFoods().stream())
+                ).collect(Collectors.toList());
     }
 
     private boolean foodIsMissing(EatingTime eatingTime, FoodId id) {

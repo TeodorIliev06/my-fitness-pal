@@ -5,6 +5,7 @@ import com.fmi.myfitnesspal.exception.UnknownExerciseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class DailyExerciseDiary implements ExerciseDiaryAPI {
     private Map<String, Exercise> dailyExercises = new HashMap<>();
@@ -43,5 +44,12 @@ public final class DailyExerciseDiary implements ExerciseDiaryAPI {
 
     public int getBurnedDailyCalories() {
         return burnedDailyCalories;
+    }
+
+    public List<CardioExercise> getDailyCardioExercises() {
+        return dailyExercises.values().stream()
+                .filter(exercise -> exercise instanceof CardioExercise)
+                .map(exercise -> (CardioExercise) exercise)
+                .collect(Collectors.toList());
     }
 }

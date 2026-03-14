@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.IsoFields;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -110,5 +111,17 @@ public final class CommandUtilities {
         } catch (IllegalArgumentException e) {
             throw new InvalidCommandException(GlobalConstants.NOT_EXISTING_EATING_TIME_MESSAGE, e);
         }
+    }
+
+    public static int toWeekNumber(LocalDate date) {
+        return date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+    }
+
+    public static int parseWeekNumber(String weekNumber) throws InvalidCommandException {
+        int week = parseInt(weekNumber);
+        if (week < 1 || week > 53) {
+            throw new InvalidCommandException("Week number must be between 1 and 53");
+        }
+        return week;
     }
 }
