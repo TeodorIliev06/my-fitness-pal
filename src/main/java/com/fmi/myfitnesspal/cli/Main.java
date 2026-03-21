@@ -24,7 +24,11 @@ import com.fmi.myfitnesspal.command.food.ShowFoodsCommand;
 import com.fmi.myfitnesspal.command.food.CreateMealCommand;
 import com.fmi.myfitnesspal.command.food.CreateFoodCommand;
 import com.fmi.myfitnesspal.command.food.ShowWeeklyCaloriesCommand;
+import com.fmi.myfitnesspal.command.food.ShowDailyMealCaloriesCommand;
+import com.fmi.myfitnesspal.command.food.ShowDailyNutrientsCommand;
+import com.fmi.myfitnesspal.command.food.ShowWeeklyNutrientsCommand;
 import com.fmi.myfitnesspal.command.user.RegisterNewUserCommand;
+import com.fmi.myfitnesspal.command.utility.NutritionSliceMapper;
 import com.fmi.myfitnesspal.command.water.RemoveWaterCommand;
 import com.fmi.myfitnesspal.command.water.RemoveWaterPortionCommand;
 import com.fmi.myfitnesspal.exercise.ExerciseDiary;
@@ -38,6 +42,7 @@ import com.fmi.myfitnesspal.water.WaterDiary;
 import com.fmi.myfitnesspal.command.water.AddWaterCommand;
 import com.fmi.myfitnesspal.command.water.AddWaterPortionCommand;
 import com.fmi.myfitnesspal.command.water.GetWaterCommand;
+import org.external.chart.PieChartWindow;
 
 
 import java.util.Scanner;
@@ -59,9 +64,10 @@ public final class Main {
         CommandExecutor executor = new CommandExecutor(registry);
         Scanner scanner = new Scanner(System.in);
         UserRegistration userRegistration = new UserRegistration(scanner);
+        NutritionSliceMapper sliceMapper = new NutritionSliceMapper();
 
         fillRegistry(registry, waterDiary, foodPool, foodDiary, mealPool, exercisePool, exerciseDiary, userHolder,
-            scanner, userRegistration);
+            scanner, userRegistration, sliceMapper);
 
         Menu menu = new Menu(registry, scanner);
         menu.start();
@@ -71,7 +77,8 @@ public final class Main {
                                      FoodPool foodPool, FoodDiary foodDiary, MealPool mealPool,
                                      ExercisePool exercisePool, ExerciseDiary exerciseDiary,
                                      UserHolder userHolder,
-                                     Scanner scanner, UserRegistration userRegistration) {
+                                     Scanner scanner, UserRegistration userRegistration,
+                                     NutritionSliceMapper sliceMapper) {
         registry.addCommand(new AddWaterCommand(waterDiary));
         registry.addCommand(new AddWaterPortionCommand(waterDiary));
         registry.addCommand(new GetWaterCommand(waterDiary));
@@ -99,5 +106,8 @@ public final class Main {
         registry.addCommand(new ShowStrengthExercisesCommand(exercisePool));
         registry.addCommand(new ShowWorkoutsCommand(exercisePool));
         registry.addCommand(new ShowWeeklyCardioCommand(exerciseDiary));
+        registry.addCommand(new ShowDailyMealCaloriesCommand(foodDiary, PieChartWindow::show, sliceMapper));
+        registry.addCommand(new ShowDailyNutrientsCommand(foodDiary, PieChartWindow::show, sliceMapper));
+        registry.addCommand(new ShowWeeklyNutrientsCommand(foodDiary, PieChartWindow::show, sliceMapper));
     }
 }

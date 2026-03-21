@@ -33,6 +33,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core:5.11.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
+    implementation 'org.knowm.xchart:xchart:3.8.1'
 }
 
 run {
@@ -78,7 +79,7 @@ tasks.withType(JacocoCoverageVerification).configureEach {
             limit {
                 counter = 'BRANCH'
                 value = 'COVEREDRATIO'
-                minimum = 0.75
+                minimum = 0.8
             }
         }
     }

@@ -124,4 +124,15 @@ public final class CommandUtilities {
         }
         return week;
     }
+
+    public static int getWeekNumber(String argument) throws InvalidCommandException {
+        boolean isWeekNumber = argument.chars().allMatch(Character::isDigit);
+
+        if (isWeekNumber) {
+            return parseWeekNumber(argument);
+        }
+
+        LocalDate date = parseDate(argument);
+        return toWeekNumber(date);
+    }
 }

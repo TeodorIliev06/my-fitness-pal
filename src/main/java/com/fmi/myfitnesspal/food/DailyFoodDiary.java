@@ -65,6 +65,13 @@ public final class DailyFoodDiary {
                 ).collect(Collectors.toList());
     }
 
+    public List<Food> getAllFoodsByEatingTime(EatingTime eatingTime) {
+        return Stream.concat(
+                foods.get(eatingTime).stream(),
+                meals.get(eatingTime).stream().flatMap(meal -> meal.getFoods().stream())
+        ).collect(Collectors.toList());
+    }
+
     private boolean foodIsMissing(EatingTime eatingTime, FoodId id) {
         return this.foods.get(eatingTime).stream().noneMatch(food -> food.getId().equals(id));
     }

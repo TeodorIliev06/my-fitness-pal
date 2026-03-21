@@ -7,52 +7,39 @@ import java.time.temporal.IsoFields;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class FoodDiary {
 
-    private Map<LocalDate, DailyFoodDiary> diary;
+    private final Map<LocalDate, DailyFoodDiary> diary;
 
     public FoodDiary() {
         this.diary = new HashMap<>();
     }
 
     public void removeFood(LocalDate date, EatingTime eatingTime, FoodId foodId) {
-        validateDate(date);
-        this.diary.get(date).removeFood(eatingTime, foodId);
+        getValidatedDailyDiary(date).removeFood(eatingTime, foodId);
     }
 
     public void removeMeal(LocalDate date, EatingTime eatingTime, MealId id) {
-        validateDate(date);
-        this.diary.get(date).removeMeal(eatingTime, id);
+        getValidatedDailyDiary(date).removeMeal(eatingTime, id);
     }
 
     public void addFood(LocalDate date, EatingTime eatingTime, Food food, double numberOfServings) {
-
-        if (isDailyDiaryEmpty(date)) {
-            this.diary.put(date, new DailyFoodDiary());
-        }
-
-        this.diary.get(date).addFood(eatingTime, food, numberOfServings);
+        getOrCreateDailyDiary(date).addFood(eatingTime, food, numberOfServings);
     }
 
     public void addMeal(LocalDate date, EatingTime eatingTime, Meal meal) {
-
-        if (isDailyDiaryEmpty(date)) {
-            this.diary.put(date, new DailyFoodDiary());
-        }
-
-        this.diary.get(date).addMeal(eatingTime, meal);
+        getOrCreateDailyDiary(date).addMeal(eatingTime, meal);
     }
 
     public List<Food> getFoodsByDateAndEatingTime(LocalDate date, EatingTime eatingTime) {
-        validateDate(date);
-        return this.diary.get(date).getFoodsByEatingTime(eatingTime);
+        return getValidatedDailyDiary(date).getFoodsByEatingTime(eatingTime);
     }
 
     public List<Meal> getMealsByDateAndEatingTime(LocalDate date, EatingTime eatingTime) {
-        validateDate(date);
-        return this.diary.get(date).getMealsByEatingTime(eatingTime);
+        return getValidatedDailyDiary(date).getMealsByEatingTime(eatingTime);
     }
 
     public List<Food> getFoodsByWeekNumber(int weekNumber) {
@@ -62,12 +49,33 @@ public final class FoodDiary {
                 .collect(Collectors.toList());
     }
 
-    private boolean isDailyDiaryEmpty(LocalDate date) {
-        return !this.diary.containsKey(date);
+    public List<Food> getAllFoodsByDate(LocalDate date) {
+        return findDailyDiary(date)
+                .map(DailyFoodDiary::getAllFoods)
+                .orElse(List.of());
+    }
+
+    public List<Food> getAllFoodsByDateAndEatingTime(LocalDate date, EatingTime eatingTime) {
+        return findDailyDiary(date)
+                .map(dailyDiary -> dailyDiary.getAllFoodsByEatingTime(eatingTime))
+                .orElse(List.of());
+    }
+
+    private DailyFoodDiary getOrCreateDailyDiary(LocalDate date) {
+        return this.diary.computeIfAbsent(date, d -> new DailyFoodDiary());
+    }
+
+    private DailyFoodDiary getValidatedDailyDiary(LocalDate date) {
+        validateDate(date);
+        return this.diary.get(date);
+    }
+
+    private Optional<DailyFoodDiary> findDailyDiary(LocalDate date) {
+        return Optional.ofNullable(this.diary.get(date));
     }
 
     private void validateDate(LocalDate date) {
-        if (isDailyDiaryEmpty(date)) {
+        if (!this.diary.containsKey(date)) {
             throw new IllegalArgumentException(GlobalConstants.NOT_EXISTING_DATE_IN_FOOD_DIARY_MESSAGE);
         }
     }
