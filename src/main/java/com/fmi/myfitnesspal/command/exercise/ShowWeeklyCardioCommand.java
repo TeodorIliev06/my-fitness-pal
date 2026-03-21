@@ -6,12 +6,9 @@ import com.fmi.myfitnesspal.exercise.ExerciseCalculator;
 import com.fmi.myfitnesspal.exercise.ExerciseDiary;
 import com.fmi.myfitnesspal.exercise.WeeklyCardioSummary;
 
-import java.time.LocalDate;
 import java.util.List;
 
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDate;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseWeekNumber;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.toWeekNumber;
+import static com.fmi.myfitnesspal.command.utility.CommandUtilities.getWeekNumber;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 
 public final class ShowWeeklyCardioCommand implements ExecutableCommand {
@@ -43,17 +40,6 @@ public final class ShowWeeklyCardioCommand implements ExecutableCommand {
     @Override
     public String getHelp() {
         return "Usage: " + COMMAND_NAME + " <weekNumber | date>";
-    }
-
-    private int getWeekNumber(String argument) throws InvalidCommandException {
-        boolean isWeekNumber = argument.chars().allMatch(Character::isDigit);
-
-        if (isWeekNumber) {
-            return parseWeekNumber(argument);
-        }
-
-        LocalDate date = parseDate(argument);
-        return toWeekNumber(date);
     }
 
     private String buildReport(WeeklyCardioSummary summary) {

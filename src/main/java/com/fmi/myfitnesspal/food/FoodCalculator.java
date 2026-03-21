@@ -27,22 +27,57 @@ public final class FoodCalculator {
     }
 
     public static WeeklyNutritionSummary getWeeklyNutritionSummary(FoodDiary diary, int weekNumber) {
-        List<Food> weeklyFoods = diary.getFoodsByWeekNumber(weekNumber);
-
-        double calories = weeklyFoods.stream()
-                .mapToDouble(Food::getCalories)
-                .sum();
-
-        Optional<Double> protein = sumMacro(weeklyFoods, Food::getProtein);
-        Optional<Double> carbs = sumMacro(weeklyFoods, Food::getCarbs);
-        Optional<Double> fats = sumMacro(weeklyFoods, Food::getFats);
-
-        return new WeeklyNutritionSummary(weekNumber, calories, protein, carbs, fats);
+        NutritionTotals totals = sumNutritionFrom(diary.getFoodsByWeekNumber(weekNumber));
+        return new WeeklyNutritionSummary(
+                weekNumber,
+                totals.calories(),
+                totals.protein(),
+                totals.carbs(),
+                totals.fats()
+        );
     }
 
     public static WeeklyNutritionSummary getWeeklyNutritionSummary(FoodDiary diary, LocalDate date) {
         int weekNumber = date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
         return getWeeklyNutritionSummary(diary, weekNumber);
+    }
+
+    public static DailyNutritionSummary getDailyNutritionSummary(FoodDiary diary, LocalDate date) {
+        NutritionTotals totals = sumNutritionFrom(diary.getAllFoodsByDate(date));
+        return new DailyNutritionSummary(
+                date,
+                totals.calories(),
+                totals.protein(),
+                totals.carbs(),
+                totals.fats()
+        );
+    }
+
+    public static DailyMealCaloriesSummary getDailyMealCaloriesSummary(FoodDiary diary, LocalDate date) {
+        return new DailyMealCaloriesSummary(date,
+                sumCaloriesForMealTime(diary, date, EatingTime.BREAKFAST),
+                sumCaloriesForMealTime(diary, date, EatingTime.LUNCH),
+                sumCaloriesForMealTime(diary, date, EatingTime.DINNER),
+                sumCaloriesForMealTime(diary, date, EatingTime.SNACKS)
+        );
+    }
+
+    private static NutritionTotals sumNutritionFrom(List<Food> foods) {
+        double calories = foods.stream().mapToDouble(Food::getCalories).sum();
+
+        return new NutritionTotals(
+                calories,
+                sumMacro(foods, Food::getProtein),
+                sumMacro(foods, Food::getCarbs),
+                sumMacro(foods, Food::getFats)
+        );
+    }
+
+    private static double sumCaloriesForMealTime(FoodDiary diary, LocalDate date, EatingTime eatingTime) {
+        return diary.getAllFoodsByDateAndEatingTime(date, eatingTime)
+                .stream()
+                .mapToDouble(Food::getCalories)
+                .sum();
     }
 
     private static Optional<Double> sumMacro(List<Food> foods, Function<Food, Optional<Double>> macroGetter) {
@@ -57,5 +92,14 @@ public final class FoodCalculator {
                 .sum();
 
         return Optional.of(total);
+    }
+
+    private record NutritionTotals(
+            double calories,
+            Optional<Double> protein,
+            Optional<Double> carbs,
+            Optional<Double> fats
+    ) implements NutritionSummary {
+
     }
 }
