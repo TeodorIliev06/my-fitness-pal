@@ -27,6 +27,8 @@ import com.fmi.myfitnesspal.command.food.ShowWeeklyCaloriesCommand;
 import com.fmi.myfitnesspal.command.food.ShowDailyMealCaloriesCommand;
 import com.fmi.myfitnesspal.command.food.ShowDailyNutrientsCommand;
 import com.fmi.myfitnesspal.command.food.ShowWeeklyNutrientsCommand;
+import com.fmi.myfitnesspal.command.calorie.CheckCalorieGoalCommand;
+import com.fmi.myfitnesspal.command.calorie.SetCalorieGoalCommand;
 import com.fmi.myfitnesspal.command.user.RegisterNewUserCommand;
 import com.fmi.myfitnesspal.command.utility.NutritionSliceMapper;
 import com.fmi.myfitnesspal.command.water.RemoveWaterCommand;
@@ -36,14 +38,18 @@ import com.fmi.myfitnesspal.exercise.ExercisePool;
 import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.FoodPool;
 import com.fmi.myfitnesspal.food.MealPool;
+import com.fmi.myfitnesspal.calorie.CalorieGoalHolder;
 import com.fmi.myfitnesspal.registration_cli.UserRegistration;
 import com.fmi.myfitnesspal.user.UserHolder;
 import com.fmi.myfitnesspal.water.WaterDiary;
 import com.fmi.myfitnesspal.command.water.AddWaterCommand;
 import com.fmi.myfitnesspal.command.water.AddWaterPortionCommand;
 import com.fmi.myfitnesspal.command.water.GetWaterCommand;
-import org.external.chart.PieChartWindow;
+import com.fmi.myfitnesspal.chart.BarChartDisplayer;
+import com.fmi.myfitnesspal.chart.PieChartDisplayer;
 
+import org.external.chart.BarChartWindow;
+import org.external.chart.PieChartWindow;
 
 import java.util.Scanner;
 
@@ -53,6 +59,7 @@ public final class Main {
 
     public static void main(String[] args) {
         UserHolder userHolder = new UserHolder();
+        CalorieGoalHolder calorieGoalHolder = new CalorieGoalHolder();
         WaterDiary waterDiary = new WaterDiary();
         FoodDiary foodDiary = new FoodDiary();
         FoodPool foodPool = new FoodPool();
@@ -66,8 +73,12 @@ public final class Main {
         UserRegistration userRegistration = new UserRegistration(scanner);
         NutritionSliceMapper sliceMapper = new NutritionSliceMapper();
 
+        BarChartDisplayer barChartDisplayer = new BarChartWindow();
+        PieChartDisplayer pieChartDisplayer = new PieChartWindow();
+
         fillRegistry(registry, waterDiary, foodPool, foodDiary, mealPool, exercisePool, exerciseDiary, userHolder,
-            scanner, userRegistration, sliceMapper);
+                scanner, userRegistration, sliceMapper, barChartDisplayer, pieChartDisplayer,
+                calorieGoalHolder);
 
         Menu menu = new Menu(registry, scanner);
         menu.start();
@@ -78,7 +89,9 @@ public final class Main {
                                      ExercisePool exercisePool, ExerciseDiary exerciseDiary,
                                      UserHolder userHolder,
                                      Scanner scanner, UserRegistration userRegistration,
-                                     NutritionSliceMapper sliceMapper) {
+                                     NutritionSliceMapper sliceMapper,
+                                     BarChartDisplayer barChartDisplayer, PieChartDisplayer pieChartDisplayer,
+                                     CalorieGoalHolder calorieGoalHolder) {
         registry.addCommand(new AddWaterCommand(waterDiary));
         registry.addCommand(new AddWaterPortionCommand(waterDiary));
         registry.addCommand(new GetWaterCommand(waterDiary));
@@ -106,8 +119,10 @@ public final class Main {
         registry.addCommand(new ShowStrengthExercisesCommand(exercisePool));
         registry.addCommand(new ShowWorkoutsCommand(exercisePool));
         registry.addCommand(new ShowWeeklyCardioCommand(exerciseDiary));
-        registry.addCommand(new ShowDailyMealCaloriesCommand(foodDiary, PieChartWindow::show, sliceMapper));
-        registry.addCommand(new ShowDailyNutrientsCommand(foodDiary, PieChartWindow::show, sliceMapper));
-        registry.addCommand(new ShowWeeklyNutrientsCommand(foodDiary, PieChartWindow::show, sliceMapper));
+        registry.addCommand(new ShowDailyMealCaloriesCommand(foodDiary, pieChartDisplayer, sliceMapper));
+        registry.addCommand(new ShowDailyNutrientsCommand(foodDiary, pieChartDisplayer, sliceMapper));
+        registry.addCommand(new ShowWeeklyNutrientsCommand(foodDiary, pieChartDisplayer, sliceMapper));
+        registry.addCommand(new SetCalorieGoalCommand(calorieGoalHolder));
+        registry.addCommand(new CheckCalorieGoalCommand(foodDiary, calorieGoalHolder, barChartDisplayer));
     }
 }
