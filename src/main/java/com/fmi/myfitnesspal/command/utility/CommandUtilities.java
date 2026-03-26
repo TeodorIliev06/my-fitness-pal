@@ -1,7 +1,9 @@
 package com.fmi.myfitnesspal.command.utility;
 
+import com.fmi.myfitnesspal.calorie.CalorieGoalType;
 import com.fmi.myfitnesspal.constants.GlobalConstants;
 import com.fmi.myfitnesspal.food.EatingTime;
+import com.fmi.myfitnesspal.user.sex.Sex;
 import com.fmi.myfitnesspal.water.Portion;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import java.time.LocalDate;
@@ -110,6 +112,22 @@ public final class CommandUtilities {
             return EatingTime.valueOf(eatingTime.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new InvalidCommandException(GlobalConstants.NOT_EXISTING_EATING_TIME_MESSAGE, e);
+        }
+    }
+
+    public static Sex parseSex(String argument) throws InvalidCommandException {
+        try {
+            return Sex.valueOf(argument.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidCommandException("The sex provided does not exist", e);
+        }
+    }
+
+    public static CalorieGoalType parseCalorieGoalType(String argument) throws InvalidCommandException {
+        try {
+            return CalorieGoalType.valueOf(argument.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidCommandException("The calorie goal type provided does not exist", e);
         }
     }
 

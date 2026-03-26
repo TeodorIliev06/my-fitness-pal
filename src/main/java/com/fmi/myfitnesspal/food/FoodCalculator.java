@@ -3,10 +3,14 @@ package com.fmi.myfitnesspal.food;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import java.time.LocalDate;
+import java.time.DayOfWeek;
 import java.time.temporal.IsoFields;
 
 public final class FoodCalculator {
+
+    private static final int DAYS_IN_WEEK = 7;
 
     private FoodCalculator() {
     }
@@ -51,6 +55,15 @@ public final class FoodCalculator {
                 totals.carbs(),
                 totals.fats()
         );
+    }
+
+    public static List<DailyNutritionSummary> getDailyNutritionSummariesForWeek(
+            FoodDiary diary, LocalDate targetDate) {
+        LocalDate monday = targetDate.with(DayOfWeek.MONDAY);
+        return IntStream.range(0, DAYS_IN_WEEK)
+                .mapToObj(monday::plusDays)
+                .map(day -> getDailyNutritionSummary(diary, day))
+                .toList();
     }
 
     public static DailyMealCaloriesSummary getDailyMealCaloriesSummary(FoodDiary diary, LocalDate date) {
