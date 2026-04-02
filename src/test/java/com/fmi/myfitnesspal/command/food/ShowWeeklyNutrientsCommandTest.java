@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,6 +31,8 @@ public final class ShowWeeklyNutrientsCommandTest {
     private static final int TARGET_WEEK = 2;
     private static final String TARGET_WEEK_STR = String.valueOf(TARGET_WEEK);
     private static final String DATE_IN_TARGET_WEEK = "08.01.2024";
+    private static final WeeklyNutritionSummary EMPTY_SUMMARY =
+            new WeeklyNutritionSummary(TARGET_WEEK, 0, Optional.empty(), Optional.empty(), Optional.empty());
 
     @Mock
     private FoodDiary foodDiaryMock;
@@ -46,7 +49,7 @@ public final class ShowWeeklyNutrientsCommandTest {
 
     @Test
     void testExecuteByWeekNumberOpensChart() throws InvalidCommandException {
-        when(foodDiaryMock.getFoodsByWeekNumber(TARGET_WEEK)).thenReturn(List.of());
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
         command.execute(List.of(TARGET_WEEK_STR));
@@ -56,7 +59,7 @@ public final class ShowWeeklyNutrientsCommandTest {
 
     @Test
     void testExecuteByWeekNumberReturnsChartOpenedMessage() throws InvalidCommandException {
-        when(foodDiaryMock.getFoodsByWeekNumber(TARGET_WEEK)).thenReturn(List.of());
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
         String result = command.execute(List.of(TARGET_WEEK_STR));
@@ -67,17 +70,17 @@ public final class ShowWeeklyNutrientsCommandTest {
 
     @Test
     void testExecuteByDateResolvesToCorrectWeek() throws InvalidCommandException {
-        when(foodDiaryMock.getFoodsByWeekNumber(TARGET_WEEK)).thenReturn(List.of());
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
         command.execute(List.of(DATE_IN_TARGET_WEEK));
 
-        verify(foodDiaryMock).getFoodsByWeekNumber(TARGET_WEEK);
+        verify(foodDiaryMock).getWeeklyNutritionSummary(TARGET_WEEK);
     }
 
     @Test
     void testExecuteChartTitleContainsWeekNumber() throws InvalidCommandException {
-        when(foodDiaryMock.getFoodsByWeekNumber(TARGET_WEEK)).thenReturn(List.of());
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
         command.execute(List.of(TARGET_WEEK_STR));
@@ -89,12 +92,12 @@ public final class ShowWeeklyNutrientsCommandTest {
 
     @Test
     void testExecutePassesWeeklySummaryToMapper() throws InvalidCommandException {
-        when(foodDiaryMock.getFoodsByWeekNumber(TARGET_WEEK)).thenReturn(List.of());
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
         command.execute(List.of(TARGET_WEEK_STR));
 
-        verify(sliceMapperMock).fromNutritionSummary(any(WeeklyNutritionSummary.class));
+        verify(sliceMapperMock).fromNutritionSummary(EMPTY_SUMMARY);
     }
 
     @Test
@@ -104,7 +107,7 @@ public final class ShowWeeklyNutrientsCommandTest {
                 new PieSlice("Carbs", 60.0),
                 new PieSlice("Fats", 6.0)
         );
-        when(foodDiaryMock.getFoodsByWeekNumber(TARGET_WEEK)).thenReturn(List.of());
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(expectedSlices);
 
         command.execute(List.of(TARGET_WEEK_STR));
@@ -150,5 +153,10 @@ public final class ShowWeeklyNutrientsCommandTest {
                 () -> command.execute(List.of("54")),
                 "execute() with week number above 53 should throw InvalidCommandException");
         verify(chartDisplayerMock, never()).display(any(), any());
+    }
+
+    private void stubDiaryReturnsEmptySummary() {
+        when(foodDiaryMock.getWeeklyNutritionSummary(TARGET_WEEK))
+                .thenReturn(EMPTY_SUMMARY);
     }
 }

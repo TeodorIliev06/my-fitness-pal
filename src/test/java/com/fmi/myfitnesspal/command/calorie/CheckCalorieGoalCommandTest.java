@@ -4,9 +4,8 @@ import com.fmi.myfitnesspal.calorie.CalorieGoal;
 import com.fmi.myfitnesspal.calorie.CalorieGoalHolder;
 import com.fmi.myfitnesspal.chart.BarChartDisplayer;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
-import com.fmi.myfitnesspal.food.Food;
+import com.fmi.myfitnesspal.food.DailyNutritionSummary;
 import com.fmi.myfitnesspal.food.FoodDiary;
-import com.fmi.myfitnesspal.food.FoodId;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -15,15 +14,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.DATE_FORMATTER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -55,7 +57,7 @@ public final class CheckCalorieGoalCommandTest {
     @Test
     void testExecuteFormatsAboveGoalMessage() throws InvalidCommandException {
         stubActiveGoal();
-        stubAllDaysWithDailyCalories(DAILY_CALORIE_GOAL + 20);
+        stubWeeklySummariesWithDailyCalories(DAILY_CALORIE_GOAL + 20);
 
         String result = command.execute(List.of(TARGET_DATE_STR));
 
@@ -68,7 +70,7 @@ public final class CheckCalorieGoalCommandTest {
     @Test
     void testExecuteFormatsBelowGoalMessage() throws InvalidCommandException {
         stubActiveGoal();
-        stubAllDaysWithDailyCalories(DAILY_CALORIE_GOAL - 300);
+        stubWeeklySummariesWithDailyCalories(DAILY_CALORIE_GOAL - 300);
 
         String result = command.execute(List.of(TARGET_DATE_STR));
 
@@ -81,7 +83,7 @@ public final class CheckCalorieGoalCommandTest {
     @Test
     void testExecuteFormatsExactGoalMessage() throws InvalidCommandException {
         stubActiveGoal();
-        stubAllDaysWithDailyCalories(DAILY_CALORIE_GOAL);
+        stubWeeklySummariesWithDailyCalories(DAILY_CALORIE_GOAL);
 
         String result = command.execute(List.of(TARGET_DATE_STR));
 
@@ -94,7 +96,7 @@ public final class CheckCalorieGoalCommandTest {
     @Test
     void testExecuteDelegatesDisplayToBarChartDisplayer() throws InvalidCommandException {
         stubActiveGoal();
-        stubAllDaysWithDailyCalories(DAILY_CALORIE_GOAL);
+        stubWeeklySummariesWithDailyCalories(DAILY_CALORIE_GOAL);
 
         command.execute(List.of(TARGET_DATE_STR));
 
@@ -104,7 +106,7 @@ public final class CheckCalorieGoalCommandTest {
     @Test
     void testExecuteChartTitleContainsGoalValue() throws InvalidCommandException {
         stubActiveGoal();
-        stubAllDaysWithDailyCalories(DAILY_CALORIE_GOAL);
+        stubWeeklySummariesWithDailyCalories(DAILY_CALORIE_GOAL);
 
         command.execute(List.of(TARGET_DATE_STR));
 
@@ -121,7 +123,8 @@ public final class CheckCalorieGoalCommandTest {
         assertThrows(InvalidCommandException.class,
                 () -> command.execute(List.of(TARGET_DATE_STR)),
                 "Command must throw when no calorie goal has been set yet");
-        verify(barChartDisplayerMock, never()).display(any(), any(), any(int.class));
+        verify(barChartDisplayerMock, never()).display(any(), any(), anyInt());
+        verify(foodDiaryMock, never()).getDailyNutritionSummariesForWeek(any());
     }
 
     @Test
@@ -152,8 +155,15 @@ public final class CheckCalorieGoalCommandTest {
         when(calorieGoalHolderMock.getActiveCalorieGoal()).thenReturn(Optional.of(ACTIVE_GOAL));
     }
 
-    private void stubAllDaysWithDailyCalories(int dailyCalories) {
-        Food stubFood = Food.builder(new FoodId("stub", "food"), 1, dailyCalories).build();
-        when(foodDiaryMock.getAllFoodsByDate(any())).thenReturn(List.of(stubFood));
+    private void stubWeeklySummariesWithDailyCalories(int dailyCalories) {
+        LocalDate monday = TARGET_DATE.with(DayOfWeek.MONDAY);
+        List<DailyNutritionSummary> summaries = IntStream.range(0, 7)
+                .mapToObj(monday::plusDays)
+                .map(date -> new DailyNutritionSummary(
+                        date, dailyCalories, Optional.empty(), Optional.empty(), Optional.empty()))
+                .toList();
+
+        when(foodDiaryMock.getDailyNutritionSummariesForWeek(TARGET_DATE))
+                .thenReturn(summaries);
     }
 }

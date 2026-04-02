@@ -42,8 +42,7 @@ public final class DailyFoodDiary {
     }
 
     public void addFood(EatingTime eatingTime, Food food, double numberOfServings) {
-        Food modifiedFood = FoodCalculator.recalculateFoodParameters(food, numberOfServings);
-        this.foods.get(eatingTime).add(modifiedFood);
+        this.foods.get(eatingTime).add(food.scaledBy(numberOfServings));
     }
 
     public void addMeal(EatingTime eatingTime, Meal meal) {

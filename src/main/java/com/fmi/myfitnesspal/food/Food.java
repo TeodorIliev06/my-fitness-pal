@@ -36,6 +36,14 @@ public final class Food {
         return this.carbs;
     }
 
+    public Food scaledBy(double servingsCount) {
+        return Food.builder(this.id, this.servingSize * servingsCount, this.calories * servingsCount)
+                .setFats(this.fats.map(fats -> fats * servingsCount))
+                .setProtein(this.protein.map(protein -> protein * servingsCount))
+                .setCarbs(this.carbs.map(carbs -> carbs * servingsCount))
+                .build();
+    }
+
     public static FoodBuilder builder(FoodId id, double servingSize, double calories) {
         return new FoodBuilder(id, servingSize, calories);
     }

@@ -7,7 +7,6 @@ import com.fmi.myfitnesspal.chart.BarEntry;
 import com.fmi.myfitnesspal.command.ExecutableCommand;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import com.fmi.myfitnesspal.food.DailyNutritionSummary;
-import com.fmi.myfitnesspal.food.FoodCalculator;
 import com.fmi.myfitnesspal.food.FoodDiary;
 
 import java.time.LocalDate;
@@ -46,10 +45,20 @@ public final class CheckCalorieGoalCommand implements ExecutableCommand {
 
         CalorieGoal activeGoal = getActiveGoal();
         List<DailyNutritionSummary> weeklySummaries =
-                FoodCalculator.getDailyNutritionSummariesForWeek(foodDiary, targetDate);
+                foodDiary.getDailyNutritionSummariesForWeek(targetDate);
 
         displayBarChart(activeGoal, weeklySummaries, targetDate);
         return buildComparisonMessage(activeGoal, weeklySummaries);
+    }
+
+    @Override
+    public String name() {
+        return COMMAND_NAME;
+    }
+
+    @Override
+    public String getHelp() {
+        return "Usage: " + COMMAND_NAME + " <date>";
     }
 
     private CalorieGoal getActiveGoal() throws InvalidCommandException {
@@ -90,16 +99,6 @@ public final class CheckCalorieGoalCommand implements ExecutableCommand {
         return String.format(
                 "This week you had an average of %d calories %s than your %d calorie goal.",
                 Math.abs(deviation), direction, activeGoal.dailyCalorieTarget());
-    }
-
-    @Override
-    public String name() {
-        return COMMAND_NAME;
-    }
-
-    @Override
-    public String getHelp() {
-        return "Usage: " + COMMAND_NAME + " <date>";
     }
 
     private int computeAverageCalories(List<DailyNutritionSummary> weeklySummaries) {

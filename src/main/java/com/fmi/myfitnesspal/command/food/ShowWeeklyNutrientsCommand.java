@@ -2,7 +2,6 @@ package com.fmi.myfitnesspal.command.food;
 
 import com.fmi.myfitnesspal.command.utility.NutritionSliceMapper;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
-import com.fmi.myfitnesspal.food.FoodCalculator;
 import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.WeeklyNutritionSummary;
 import com.fmi.myfitnesspal.chart.PieChartDisplayer;
@@ -16,15 +15,15 @@ public final class ShowWeeklyNutrientsCommand extends ChartCommand {
 
     private static final String COMMAND_NAME = "show-weekly-nutrients";
 
-    public ShowWeeklyNutrientsCommand(FoodDiary foodDiary, PieChartDisplayer chartDisplayer,
-                                      NutritionSliceMapper sliceMapper) {
+    public ShowWeeklyNutrientsCommand(FoodDiary foodDiary,
+                                      PieChartDisplayer chartDisplayer, NutritionSliceMapper sliceMapper) {
         super(foodDiary, chartDisplayer, sliceMapper);
     }
 
     @Override
     protected ChartData buildChart(String argument) throws InvalidCommandException {
         int weekNumber = getWeekNumber(argument);
-        WeeklyNutritionSummary summary = FoodCalculator.getWeeklyNutritionSummary(foodDiary, weekNumber);
+        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(weekNumber);
 
         String title = "Weekly Nutrients — Week " + weekNumber;
 

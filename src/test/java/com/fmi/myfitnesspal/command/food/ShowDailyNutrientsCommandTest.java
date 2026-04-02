@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.DATE_FORMATTER;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -31,6 +32,8 @@ public final class ShowDailyNutrientsCommandTest {
 
     private static final LocalDate TARGET_DATE = LocalDate.of(2025, 5, 25);
     private static final String TARGET_DATE_STR = TARGET_DATE.format(DATE_FORMATTER);
+    private static final DailyNutritionSummary EMPTY_SUMMARY =
+            new DailyNutritionSummary(TARGET_DATE, 0, Optional.empty(), Optional.empty(), Optional.empty());
 
     @Mock
     private FoodDiary foodDiaryMock;
@@ -47,7 +50,7 @@ public final class ShowDailyNutrientsCommandTest {
 
     @Test
     void testExecuteOpensChartForValidDate() throws InvalidCommandException {
-        when(foodDiaryMock.getAllFoodsByDate(TARGET_DATE)).thenReturn(List.of());
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
         command.execute(List.of(TARGET_DATE_STR));
@@ -57,7 +60,7 @@ public final class ShowDailyNutrientsCommandTest {
 
     @Test
     void testExecuteReturnsChartOpenedMessage() throws InvalidCommandException {
-        when(foodDiaryMock.getAllFoodsByDate(TARGET_DATE)).thenReturn(List.of());
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
         String result = command.execute(List.of(TARGET_DATE_STR));
@@ -68,7 +71,7 @@ public final class ShowDailyNutrientsCommandTest {
 
     @Test
     void testExecuteChartTitleContainsFormattedDate() throws InvalidCommandException {
-        when(foodDiaryMock.getAllFoodsByDate(TARGET_DATE)).thenReturn(List.of());
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
         command.execute(List.of(TARGET_DATE_STR));
@@ -79,13 +82,23 @@ public final class ShowDailyNutrientsCommandTest {
     }
 
     @Test
-    void testExecutePassesDailySummaryToMapper() throws InvalidCommandException {
-        when(foodDiaryMock.getAllFoodsByDate(TARGET_DATE)).thenReturn(List.of());
+    void testExecuteDelegatesToFoodDiary() throws InvalidCommandException {
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
         command.execute(List.of(TARGET_DATE_STR));
 
-        verify(sliceMapperMock).fromNutritionSummary(any(DailyNutritionSummary.class));
+        verify(foodDiaryMock).getDailyNutritionSummary(TARGET_DATE);
+    }
+
+    @Test
+    void testExecutePassesDailySummaryToMapper() throws InvalidCommandException {
+        stubDiaryReturnsEmptySummary();
+        when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
+
+        command.execute(List.of(TARGET_DATE_STR));
+
+        verify(sliceMapperMock).fromNutritionSummary(EMPTY_SUMMARY);
     }
 
     @Test
@@ -95,7 +108,7 @@ public final class ShowDailyNutrientsCommandTest {
                 new PieSlice("Carbs", 0.0),
                 new PieSlice("Fats", 3.6)
         );
-        when(foodDiaryMock.getAllFoodsByDate(TARGET_DATE)).thenReturn(List.of());
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(expectedSlices);
 
         command.execute(List.of(TARGET_DATE_STR));
@@ -125,5 +138,10 @@ public final class ShowDailyNutrientsCommandTest {
                 () -> command.execute(List.of("not-a-date")),
                 "execute() with an invalid date format should throw InvalidCommandException");
         verify(chartDisplayerMock, never()).display(any(), any());
+    }
+
+    private void stubDiaryReturnsEmptySummary() {
+        when(foodDiaryMock.getDailyNutritionSummary(TARGET_DATE))
+                .thenReturn(EMPTY_SUMMARY);
     }
 }

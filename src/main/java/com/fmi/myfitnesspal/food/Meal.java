@@ -25,8 +25,7 @@ public final class Meal {
     }
 
     public void addFood(Food food, double numberOfServings) {
-        Food modifiedFood = FoodCalculator.recalculateFoodParameters(food, numberOfServings);
-        this.foods.add(modifiedFood);
+        this.foods.add(food.scaledBy(numberOfServings));
     }
 
     public void removeFood(FoodId targetId) {

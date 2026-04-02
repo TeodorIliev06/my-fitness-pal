@@ -3,7 +3,6 @@ package com.fmi.myfitnesspal.command.food;
 import com.fmi.myfitnesspal.command.utility.NutritionSliceMapper;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import com.fmi.myfitnesspal.food.DailyMealCaloriesSummary;
-import com.fmi.myfitnesspal.food.EatingTime;
 import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.chart.PieChartDisplayer;
 import com.fmi.myfitnesspal.chart.PieSlice;
@@ -17,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.DATE_FORMATTER;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -32,6 +32,8 @@ public final class ShowDailyMealCaloriesCommandTest {
 
     private static final LocalDate TARGET_DATE = LocalDate.of(2025, 5, 25);
     private static final String TARGET_DATE_STR = TARGET_DATE.format(DATE_FORMATTER);
+    private static final DailyMealCaloriesSummary EMPTY_SUMMARY =
+            new DailyMealCaloriesSummary(TARGET_DATE, Map.of());
 
     @Mock
     private FoodDiary foodDiaryMock;
@@ -48,7 +50,7 @@ public final class ShowDailyMealCaloriesCommandTest {
 
     @Test
     void testExecuteOpensChartForValidDate() throws InvalidCommandException {
-        stubAllMealTimesEmpty();
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromDailyMealCaloriesSummary(any())).thenReturn(List.of());
 
         command.execute(List.of(TARGET_DATE_STR));
@@ -58,7 +60,7 @@ public final class ShowDailyMealCaloriesCommandTest {
 
     @Test
     void testExecuteReturnsChartOpenedMessage() throws InvalidCommandException {
-        stubAllMealTimesEmpty();
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromDailyMealCaloriesSummary(any())).thenReturn(List.of());
 
         String result = command.execute(List.of(TARGET_DATE_STR));
@@ -69,7 +71,7 @@ public final class ShowDailyMealCaloriesCommandTest {
 
     @Test
     void testExecuteChartTitleContainsFormattedDate() throws InvalidCommandException {
-        stubAllMealTimesEmpty();
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromDailyMealCaloriesSummary(any())).thenReturn(List.of());
 
         command.execute(List.of(TARGET_DATE_STR));
@@ -80,19 +82,29 @@ public final class ShowDailyMealCaloriesCommandTest {
     }
 
     @Test
-    void testExecutePassesSummaryToMapper() throws InvalidCommandException {
-        stubAllMealTimesEmpty();
+    void testExecuteDelegatesToFoodDiary() throws InvalidCommandException {
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromDailyMealCaloriesSummary(any())).thenReturn(List.of());
 
         command.execute(List.of(TARGET_DATE_STR));
 
-        verify(sliceMapperMock).fromDailyMealCaloriesSummary(any(DailyMealCaloriesSummary.class));
+        verify(foodDiaryMock).getDailyMealCaloriesSummary(TARGET_DATE);
+    }
+
+    @Test
+    void testExecutePassesSummaryToMapper() throws InvalidCommandException {
+        stubDiaryReturnsEmptySummary();
+        when(sliceMapperMock.fromDailyMealCaloriesSummary(any())).thenReturn(List.of());
+
+        command.execute(List.of(TARGET_DATE_STR));
+
+        verify(sliceMapperMock).fromDailyMealCaloriesSummary(EMPTY_SUMMARY);
     }
 
     @Test
     void testExecutePassesMapperSlicesToDisplayer() throws InvalidCommandException {
         List<PieSlice> expectedSlices = List.of(new PieSlice("Breakfast", 300.0));
-        stubAllMealTimesEmpty();
+        stubDiaryReturnsEmptySummary();
         when(sliceMapperMock.fromDailyMealCaloriesSummary(any())).thenReturn(expectedSlices);
 
         command.execute(List.of(TARGET_DATE_STR));
@@ -124,10 +136,8 @@ public final class ShowDailyMealCaloriesCommandTest {
         verify(chartDisplayerMock, never()).display(any(), any());
     }
 
-    private void stubAllMealTimesEmpty() {
-        for (EatingTime mealTime : EatingTime.values()) {
-            when(foodDiaryMock.getAllFoodsByDateAndEatingTime(TARGET_DATE, mealTime))
-                    .thenReturn(List.of());
-        }
+    private void stubDiaryReturnsEmptySummary() {
+        when(foodDiaryMock.getDailyMealCaloriesSummary(TARGET_DATE))
+                .thenReturn(EMPTY_SUMMARY);
     }
 }
