@@ -76,7 +76,8 @@ public final class Main {
         BarChartDisplayer barChartDisplayer = new BarChartWindow();
         PieChartDisplayer pieChartDisplayer = new PieChartWindow();
 
-        fillRegistry(registry, waterDiary, foodPool, foodDiary, mealPool, exercisePool, exerciseDiary, userHolder,
+        fillRegistry(registry, waterDiary, foodPool, foodDiary,
+                mealPool, exercisePool, exerciseDiary, userHolder,
                 scanner, userRegistration, sliceMapper, barChartDisplayer, pieChartDisplayer,
                 calorieGoalHolder);
 
@@ -85,8 +86,8 @@ public final class Main {
     }
 
     private static void fillRegistry(ExecutableCommandRegistry registry, WaterDiary waterDiary,
-                                     FoodPool foodPool, FoodDiary foodDiary, MealPool mealPool,
-                                     ExercisePool exercisePool, ExerciseDiary exerciseDiary,
+                                     FoodPool foodPool, FoodDiary foodDiary,
+                                     MealPool mealPool, ExercisePool exercisePool, ExerciseDiary exerciseDiary,
                                      UserHolder userHolder,
                                      Scanner scanner, UserRegistration userRegistration,
                                      NutritionSliceMapper sliceMapper,

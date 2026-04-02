@@ -19,12 +19,8 @@ public final class NutritionSliceMapper {
     }
 
     public List<PieSlice> fromDailyMealCaloriesSummary(DailyMealCaloriesSummary summary) {
-        return Stream.of(
-                        new PieSlice(EatingTime.BREAKFAST.getLabel(), summary.breakfastCalories()),
-                        new PieSlice(EatingTime.LUNCH.getLabel(), summary.lunchCalories()),
-                        new PieSlice(EatingTime.DINNER.getLabel(), summary.dinnerCalories()),
-                        new PieSlice(EatingTime.SNACKS.getLabel(), summary.snackCalories())
-                )
+        return Stream.of(EatingTime.values())
+                .map(eatingTime -> new PieSlice(eatingTime.getLabel(), summary.getCaloriesFor(eatingTime)))
                 .filter(slice -> slice.value() > 0)
                 .toList();
     }

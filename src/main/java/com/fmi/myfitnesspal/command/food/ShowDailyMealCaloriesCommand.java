@@ -3,7 +3,6 @@ package com.fmi.myfitnesspal.command.food;
 import com.fmi.myfitnesspal.command.utility.NutritionSliceMapper;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import com.fmi.myfitnesspal.food.DailyMealCaloriesSummary;
-import com.fmi.myfitnesspal.food.FoodCalculator;
 import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.chart.PieChartDisplayer;
 import com.fmi.myfitnesspal.chart.PieSlice;
@@ -26,7 +25,7 @@ public final class ShowDailyMealCaloriesCommand extends ChartCommand {
     @Override
     protected ChartData buildChart(String argument) throws InvalidCommandException {
         LocalDate date = parseDate(argument);
-        DailyMealCaloriesSummary summary = FoodCalculator.getDailyMealCaloriesSummary(foodDiary, date);
+        DailyMealCaloriesSummary summary = foodDiary.getDailyMealCaloriesSummary(date);
 
         String title = "Daily Calories by Meal Time — " + date.format(DATE_FORMATTER);
         List<PieSlice> slices = sliceMapper.fromDailyMealCaloriesSummary(summary);

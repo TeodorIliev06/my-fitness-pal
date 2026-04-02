@@ -2,15 +2,21 @@ package com.fmi.myfitnesspal.food;
 
 import com.fmi.myfitnesspal.constants.GlobalConstants;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.IsoFields;
 import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public final class FoodDiary {
+
+    private static final int DAYS_IN_WEEK = 7;
 
     private final Map<LocalDate, DailyFoodDiary> diary;
 
@@ -61,6 +67,82 @@ public final class FoodDiary {
                 .orElse(List.of());
     }
 
+    public WeeklyNutritionSummary getWeeklyNutritionSummary(int weekNumber) {
+        NutritionTotals totals = sumNutritionFrom(getFoodsByWeekNumber(weekNumber));
+        return new WeeklyNutritionSummary(
+                weekNumber,
+                totals.calories(),
+                totals.protein(),
+                totals.carbs(),
+                totals.fats()
+        );
+    }
+
+    public WeeklyNutritionSummary getWeeklyNutritionSummary(LocalDate date) {
+        int weekNumber = date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+        return getWeeklyNutritionSummary(weekNumber);
+    }
+
+    public DailyNutritionSummary getDailyNutritionSummary(LocalDate date) {
+        NutritionTotals totals = sumNutritionFrom(getAllFoodsByDate(date));
+        return new DailyNutritionSummary(
+                date,
+                totals.calories(),
+                totals.protein(),
+                totals.carbs(),
+                totals.fats()
+        );
+    }
+
+    public List<DailyNutritionSummary> getDailyNutritionSummariesForWeek(LocalDate targetDate) {
+        LocalDate monday = targetDate.with(DayOfWeek.MONDAY);
+        return IntStream.range(0, DAYS_IN_WEEK)
+                .mapToObj(monday::plusDays)
+                .map(this::getDailyNutritionSummary)
+                .toList();
+    }
+
+    public DailyMealCaloriesSummary getDailyMealCaloriesSummary(LocalDate date) {
+        Map<EatingTime, Double> caloriesByEatingTime = new EnumMap<>(EatingTime.class);
+
+        for (EatingTime eatingTime : EatingTime.values()) {
+            caloriesByEatingTime.put(eatingTime, sumCaloriesForMealTime(date, eatingTime));
+        }
+
+        return new DailyMealCaloriesSummary(date, caloriesByEatingTime);
+    }
+
+    private NutritionTotals sumNutritionFrom(List<Food> foods) {
+        double calories = foods.stream().mapToDouble(Food::getCalories).sum();
+        return new NutritionTotals(
+                calories,
+                sumMacro(foods, Food::getProtein),
+                sumMacro(foods, Food::getCarbs),
+                sumMacro(foods, Food::getFats)
+        );
+    }
+
+    private double sumCaloriesForMealTime(LocalDate date, EatingTime eatingTime) {
+        return getAllFoodsByDateAndEatingTime(date, eatingTime)
+                .stream()
+                .mapToDouble(Food::getCalories)
+                .sum();
+    }
+
+    private Optional<Double> sumMacro(List<Food> foods, Function<Food, Optional<Double>> macroGetter) {
+        boolean anyMacrosPresent = foods.stream().anyMatch(f -> macroGetter.apply(f).isPresent());
+
+        if (!anyMacrosPresent) {
+            return Optional.empty();
+        }
+
+        double total = foods.stream()
+                .mapToDouble(f -> macroGetter.apply(f).orElse(0.0))
+                .sum();
+
+        return Optional.of(total);
+    }
+
     private DailyFoodDiary getOrCreateDailyDiary(LocalDate date) {
         return this.diary.computeIfAbsent(date, d -> new DailyFoodDiary());
     }
@@ -78,5 +160,14 @@ public final class FoodDiary {
         if (!this.diary.containsKey(date)) {
             throw new IllegalArgumentException(GlobalConstants.NOT_EXISTING_DATE_IN_FOOD_DIARY_MESSAGE);
         }
+    }
+
+    private record NutritionTotals(
+            double calories,
+            Optional<Double> protein,
+            Optional<Double> carbs,
+            Optional<Double> fats
+    ) {
+
     }
 }

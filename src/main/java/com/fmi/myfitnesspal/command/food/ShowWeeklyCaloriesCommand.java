@@ -2,7 +2,6 @@ package com.fmi.myfitnesspal.command.food;
 
 import com.fmi.myfitnesspal.command.ExecutableCommand;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
-import com.fmi.myfitnesspal.food.FoodCalculator;
 import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.WeeklyNutritionSummary;
 
@@ -16,10 +15,10 @@ public final class ShowWeeklyCaloriesCommand implements ExecutableCommand {
     private static final String COMMAND_NAME = "show-weekly-calories";
     private static final int ARGUMENTS_COUNT = 1;
 
-    private final FoodDiary diary;
+    private final FoodDiary foodDiary;
 
-    public ShowWeeklyCaloriesCommand(FoodDiary diary) {
-        this.diary = diary;
+    public ShowWeeklyCaloriesCommand(FoodDiary foodDiary) {
+        this.foodDiary = foodDiary;
     }
 
     @Override
@@ -27,7 +26,7 @@ public final class ShowWeeklyCaloriesCommand implements ExecutableCommand {
         validateArgumentsCount(arguments, ARGUMENTS_COUNT);
 
         int weekNumber = getWeekNumber(arguments.get(0));
-        WeeklyNutritionSummary summary = FoodCalculator.getWeeklyNutritionSummary(diary, weekNumber);
+        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(weekNumber);
 
         return buildReport(summary);
     }
