@@ -9,7 +9,6 @@ import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.EatingTime;
 import com.fmi.myfitnesspal.food.Meal;
 
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -20,12 +19,12 @@ import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgu
 public final class AddMealCommand implements ExecutableCommand {
     private static final String COMMAND_NAME = "add-meal";
     private static final int ARGUMENTS_COUNT = 4;
-    private final FoodDiary diary;
-    private final MealPool availableMeals;
+    private final FoodDiary foodDiary;
+    private final MealPool mealPool;
 
-    public AddMealCommand(FoodDiary diary, MealPool availableFood) {
-        this.diary = diary;
-        this.availableMeals = availableFood;
+    public AddMealCommand(FoodDiary foodDiary, MealPool availableFood) {
+        this.foodDiary = foodDiary;
+        this.mealPool = availableFood;
     }
 
     @Override
@@ -35,8 +34,8 @@ public final class AddMealCommand implements ExecutableCommand {
         LocalDate date = parseDate(arguments.get(0));
         EatingTime eatingTime = parseEatingTime(arguments.get(1));
         MealId mealId = new MealId(arguments.get(2), arguments.get(3));
-        Meal targetMeal = this.availableMeals.getMeal(mealId);
-        this.diary.addMeal(date, eatingTime, targetMeal);
+        Meal targetMeal = this.mealPool.getMeal(mealId);
+        this.foodDiary.addMeal(date, eatingTime, targetMeal);
 
         return GlobalConstants.SUCCESSFULLY_ADDED_MEAL_MESSAGE;
 

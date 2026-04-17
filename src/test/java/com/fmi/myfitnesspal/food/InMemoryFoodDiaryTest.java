@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public final class FoodDiaryTest {
+public final class InMemoryFoodDiaryTest {
 
     private static final LocalDate CONSUMPTION_DATE = LocalDate.of(2025, 5, 26);
     private static final LocalDate ANOTHER_DATE_IN_SAME_WEEK = LocalDate.of(2025, 5, 28);
@@ -40,11 +40,11 @@ public final class FoodDiaryTest {
             .setCarbs(Optional.of(57.0))
             .build();
 
-    private FoodDiary foodDiary;
+    private InMemoryFoodDiary foodDiary;
 
     @BeforeEach
     public void setUp() {
-        foodDiary = new FoodDiary();
+        foodDiary = new InMemoryFoodDiary();
     }
 
     @Test

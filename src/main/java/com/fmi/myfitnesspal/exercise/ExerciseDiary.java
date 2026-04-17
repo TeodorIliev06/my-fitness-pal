@@ -3,57 +3,17 @@ package com.fmi.myfitnesspal.exercise;
 import com.fmi.myfitnesspal.exception.UnknownExerciseException;
 
 import java.time.LocalDate;
-import java.time.temporal.IsoFields;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Collection;
 
-public final class ExerciseDiary {
-    Map<LocalDate, DailyExerciseDiary> diary;
-    ExercisePool exercisePool;
+public interface ExerciseDiary {
 
-    public ExerciseDiary(ExercisePool exercisePool) {
-        this.diary = new HashMap<>();
-        this.exercisePool = exercisePool;
-    }
+    void logExercise(LocalDate date, String exerciseName) throws UnknownExerciseException;
 
-    public void logExercise(LocalDate date, String exerciseName) throws UnknownExerciseException {
-        if (isDiaryEmptyOn(date)) {
-            diary.put(date, new DailyExerciseDiary(exercisePool));
-        }
-        diary.get(date).logExercise(exerciseName);
-    }
+    void removeExercise(LocalDate date, String exerciseName) throws UnknownExerciseException;
 
-    public void removeExercise(LocalDate date, String exerciseName) throws UnknownExerciseException {
-        if (isDiaryEmptyOn(date)) {
-            diary.put(date, new DailyExerciseDiary(exercisePool));
-        }
-        diary.get(date).removeExercise(exerciseName);
-    }
+    Collection<Exercise> getDailyExercise(LocalDate date);
 
-    public List<Exercise> getDailyExercise(LocalDate date) {
-        if (isDiaryEmptyOn(date)) {
-            diary.put(date, new DailyExerciseDiary(exercisePool));
-        }
-        return diary.get(date).getDailyExercise();
-    }
+    WeeklyCardioSummary getWeeklyCardioSummary(int weekNumber);
 
-    public int getBurnedDailyCalories(LocalDate date) {
-        if (isDiaryEmptyOn(date)) {
-            diary.put(date, new DailyExerciseDiary(exercisePool));
-        }
-        return diary.get(date).getBurnedDailyCalories();
-    }
-
-    public List<CardioExercise> getCardioExercisesByWeekNumber(int weekNumber) {
-        return diary.keySet().stream()
-                .filter(date -> date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) == weekNumber)
-                .flatMap(date -> diary.get(date).getDailyCardioExercises().stream())
-                .collect(Collectors.toList());
-    }
-
-    private boolean isDiaryEmptyOn(LocalDate date) {
-        return !diary.containsKey(date);
-    }
+    WeeklyCardioSummary getWeeklyCardioSummary(LocalDate consumptionDate);
 }

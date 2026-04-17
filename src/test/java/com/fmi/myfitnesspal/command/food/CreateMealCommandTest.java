@@ -1,7 +1,7 @@
 package com.fmi.myfitnesspal.command.food;
 
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
-import com.fmi.myfitnesspal.food.FoodPool;
+import com.fmi.myfitnesspal.food.InMemoryFoodPool;
 import com.fmi.myfitnesspal.food.MealPool;
 import com.fmi.myfitnesspal.food.FoodId;
 import com.fmi.myfitnesspal.food.Food;
@@ -19,13 +19,13 @@ public final class CreateMealCommandTest {
 
     private CreateMealCommand createMealCommand;
     private MealPool mealPool;
-    private FoodPool foodPool;
+    private InMemoryFoodPool inMemoryFoodPool;
 
     @BeforeEach
     public void setUp() {
         mealPool = new MealPool();
-        foodPool = new FoodPool();
-        createMealCommand = new CreateMealCommand(mealPool, foodPool);
+        inMemoryFoodPool = new InMemoryFoodPool();
+        createMealCommand = new CreateMealCommand(mealPool, inMemoryFoodPool);
 
         Food firstFood = Food.builder(new FoodId("Apple", "Red"), 2, 2)
                 .build();
@@ -33,8 +33,8 @@ public final class CreateMealCommandTest {
         Food secondFood = Food.builder(new FoodId("Banana", "Yellow"), 2, 2)
                 .build();
 
-        foodPool.addFood(firstFood);
-        foodPool.addFood(secondFood);
+        inMemoryFoodPool.addFood(firstFood);
+        inMemoryFoodPool.addFood(secondFood);
     }
 
     @Test

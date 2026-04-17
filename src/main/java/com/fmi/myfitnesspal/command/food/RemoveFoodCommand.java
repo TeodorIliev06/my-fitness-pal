@@ -6,7 +6,6 @@ import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.EatingTime;
 import com.fmi.myfitnesspal.food.FoodId;
 
-
 import com.fmi.myfitnesspal.constants.GlobalConstants;
 
 import java.time.LocalDate;
@@ -19,10 +18,10 @@ public final class RemoveFoodCommand implements ExecutableCommand {
     private static final String COMMAND_NAME = "remove-food";
     private static final int ARGUMENTS_COUNT = 4;
 
-    private final FoodDiary diary;
+    private final FoodDiary foodDiary;
 
-    public RemoveFoodCommand(FoodDiary diary) {
-        this.diary = diary;
+    public RemoveFoodCommand(FoodDiary foodDiary) {
+        this.foodDiary = foodDiary;
     }
 
     @Override
@@ -32,7 +31,7 @@ public final class RemoveFoodCommand implements ExecutableCommand {
         LocalDate date = parseDate(arguments.get(0));
         EatingTime eatingTime = parseEatingTime(arguments.get(1));
         FoodId id = new FoodId(arguments.get(2), arguments.get(3));
-        this.diary.removeFood(date, eatingTime, id);
+        this.foodDiary.removeFood(date, eatingTime, id);
 
         return GlobalConstants.SUCCESSFULLY_REMOVED_FOOD_MESSAGE;
     }

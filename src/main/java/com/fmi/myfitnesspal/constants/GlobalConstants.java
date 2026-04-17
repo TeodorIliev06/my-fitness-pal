@@ -25,6 +25,8 @@ public final class GlobalConstants {
     public static final String SUCCESSFULLY_REMOVED_MEAL_MESSAGE = "Meal removed successfully!";
     public static final String NOT_VALID_ARGUMENTS_COUNT_MESSAGE = "Arguments count not right!";
     public static final String NOT_EXISTING_DATE_IN_FOOD_DIARY_MESSAGE = "There is no such date in your food diary!";
+    public static final String NOT_EXISTING_DATE_IN_EXERCISE_DIARY_MESSAGE
+            = "There is no such date in your exercise diary!";
 
     public static final String EMPTY_OPTIONAL_VALUE = "no";
     public static final String EXIT_COMMAND = "exit";

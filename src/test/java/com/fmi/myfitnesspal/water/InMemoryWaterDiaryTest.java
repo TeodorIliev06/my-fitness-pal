@@ -9,14 +9,14 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public final class WaterDiaryTest {
+public final class InMemoryWaterDiaryTest {
     private static final LocalDate DATE = LocalDate.now();
 
-    private WaterDiary diary;
+    private InMemoryWaterDiary diary;
 
     @BeforeEach
     void initializeDiary() {
-        this.diary = new WaterDiary();
+        this.diary = new InMemoryWaterDiary();
     }
 
     @Test

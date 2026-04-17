@@ -1,7 +1,7 @@
 package com.fmi.myfitnesspal.command.food;
 
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
-import com.fmi.myfitnesspal.food.FoodPool;
+import com.fmi.myfitnesspal.food.InMemoryFoodPool;
 import com.fmi.myfitnesspal.food.FoodId;
 import com.fmi.myfitnesspal.constants.GlobalConstants;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,12 +15,12 @@ import java.util.List;
 public final class CreateFoodCommandTest {
 
     private CreateFoodCommand createFoodCommand;
-    private FoodPool foodPool;
+    private InMemoryFoodPool inMemoryFoodPool;
 
     @BeforeEach
     public void setUp() {
-        foodPool = new FoodPool();
-        createFoodCommand = new CreateFoodCommand(foodPool);
+        inMemoryFoodPool = new InMemoryFoodPool();
+        createFoodCommand = new CreateFoodCommand(inMemoryFoodPool);
     }
 
     @Test
@@ -36,7 +36,7 @@ public final class CreateFoodCommandTest {
 
         assertEquals(GlobalConstants.SUCCESSFULLY_CREATED_FOOD_MESSAGE, createFoodCommand.execute(arguments));
 
-        assertNotNull(foodPool.getFood(new FoodId("Apple", "Red")));
+        assertNotNull(inMemoryFoodPool.getFood(new FoodId("Apple", "Red")));
     }
 
     @Test

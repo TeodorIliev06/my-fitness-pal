@@ -13,22 +13,15 @@ import java.util.List;
 
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 
-public class CreateWorkoutCommand implements ExecutableCommand {
+public final class CreateWorkoutCommand implements ExecutableCommand {
     private static final int MIN_ARGUMENT_COUNT = 1;
     private static final String NAME = "create-workout";
-    private ExercisePool exercisePool;
+    private final ExercisePool exercisePool;
 
     public CreateWorkoutCommand(ExercisePool exercisePool) {
         this.exercisePool = exercisePool;
     }
 
-    /**
-     * Executes the command with the given arguments.
-     *
-     * @param arguments a list of string arguments for the command
-     * @return the result of executing the command
-     * @throws InvalidCommandException if the command execution fails due to invalid arguments or other reasons
-     */
     @Override
     public String execute(List<String> arguments) throws InvalidCommandException {
         validateArgumentsCount(arguments, args -> args.size() > MIN_ARGUMENT_COUNT);
@@ -53,21 +46,11 @@ public class CreateWorkoutCommand implements ExecutableCommand {
         return String.format("%s was created successfully!", name);
     }
 
-    /**
-     * Returns the name of the command.
-     *
-     * @return the command's name as a string
-     */
     @Override
     public String name() {
         return NAME;
     }
 
-    /**
-     * Provides help information for the command.
-     *
-     * @return a string containing help information about the command
-     */
     @Override
     public String getHelp() {
         return "Usage: " + NAME + " <name> <exercise_name_1> <exercise_name_2> <exercise_name_3> ...";

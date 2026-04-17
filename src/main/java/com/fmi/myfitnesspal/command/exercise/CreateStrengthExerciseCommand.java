@@ -12,22 +12,15 @@ import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseInt;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validatePositiveValues;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 
-public class CreateStrengthExerciseCommand implements ExecutableCommand {
+public final class CreateStrengthExerciseCommand implements ExecutableCommand {
     private static final int ARGUMENTS_COUNT = 5;
     private static final String NAME = "create-strength-exercise";
-    private ExercisePool exercisePool;
+    private final ExercisePool exercisePool;
 
     public CreateStrengthExerciseCommand(ExercisePool exercisePool) {
         this.exercisePool = exercisePool;
     }
 
-    /**
-     * Executes the command with the given arguments.
-     *
-     * @param arguments a list of string arguments for the command
-     * @return the result of executing the command
-     * @throws InvalidCommandException if the command execution fails due to invalid arguments or other reasons
-     */
     @Override
     public String execute(List<String> arguments) throws InvalidCommandException {
         validateArgumentsCount(arguments, ARGUMENTS_COUNT);
@@ -45,21 +38,11 @@ public class CreateStrengthExerciseCommand implements ExecutableCommand {
         return String.format("%s was created successfully!", name);
     }
 
-    /**
-     * Returns the name of the command.
-     *
-     * @return the command's name as a string
-     */
     @Override
     public String name() {
         return NAME;
     }
 
-    /**
-     * Provides help information for the command.
-     *
-     * @return a string containing help information about the command
-     */
     @Override
     public String getHelp() {
         return "Usage: " + NAME + " <name> <sets> <reps> <weight> <burnedCalories>";

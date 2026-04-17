@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public final class ExercisePoolTest {
+public final class InMemoryExercisePoolTest {
 
     private static final String NON_EXISTENT_EXERCISE_NAME = "invalid-exercise-name";
 
@@ -20,11 +20,11 @@ public final class ExercisePoolTest {
     private static final StrengthExercise HEAVY_SQUATS = new StrengthExercise("Heavy Squats", 10, 10, 3, 12);
     private static final Workout MONDAY_ROUTINE = new Workout("Monday Routine", List.of(FAST_CYCLING));
 
-    private ExercisePool exerciseRegistry;
+    private InMemoryExercisePool exerciseRegistry;
 
     @BeforeEach
     void setUp() {
-        exerciseRegistry = new ExercisePool();
+        exerciseRegistry = new InMemoryExercisePool();
     }
 
     @Test

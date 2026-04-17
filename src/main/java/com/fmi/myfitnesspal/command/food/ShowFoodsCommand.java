@@ -16,10 +16,10 @@ import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDate;
 public final class ShowFoodsCommand implements ExecutableCommand {
     private static final String COMMAND_NAME = "show-foods";
     private static final int ARGUMENTS_COUNT = 2;
-    private final FoodDiary diary;
+    private final FoodDiary foodDiary;
 
-    public ShowFoodsCommand(FoodDiary diary) {
-        this.diary = diary;
+    public ShowFoodsCommand(FoodDiary foodDiary) {
+        this.foodDiary = foodDiary;
     }
 
     @Override
@@ -29,7 +29,7 @@ public final class ShowFoodsCommand implements ExecutableCommand {
         LocalDate date = parseDate(arguments.get(0));
         EatingTime eatingTime = parseEatingTime(arguments.get(1));
         StringBuilder result = new StringBuilder();
-        List<Food> foods = this.diary.getFoodsByDateAndEatingTime(date, eatingTime);
+        List<Food> foods = this.foodDiary.getFoodsByDateAndEatingTime(date, eatingTime);
         for (Food food : foods) {
             result.append(food.toString());
             result.append(System.lineSeparator());

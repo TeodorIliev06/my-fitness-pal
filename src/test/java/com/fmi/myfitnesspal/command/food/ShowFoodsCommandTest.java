@@ -2,7 +2,7 @@ package com.fmi.myfitnesspal.command.food;
 
 import com.fmi.myfitnesspal.command.utility.CommandUtilities;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
-import com.fmi.myfitnesspal.food.FoodDiary;
+import com.fmi.myfitnesspal.food.InMemoryFoodDiary;
 import com.fmi.myfitnesspal.food.EatingTime;
 import com.fmi.myfitnesspal.food.Food;
 import com.fmi.myfitnesspal.food.FoodId;
@@ -17,12 +17,12 @@ import java.util.List;
 public final class ShowFoodsCommandTest {
 
     private ShowFoodsCommand showFoodsCommand;
-    private FoodDiary diary;
+    private InMemoryFoodDiary diary;
     private LocalDate date;
 
     @BeforeEach
     public void setUp() {
-        diary = new FoodDiary();
+        diary = new InMemoryFoodDiary();
         showFoodsCommand = new ShowFoodsCommand(diary);
         date = LocalDate.parse("12.03.2024", CommandUtilities.DATE_FORMATTER);
     }

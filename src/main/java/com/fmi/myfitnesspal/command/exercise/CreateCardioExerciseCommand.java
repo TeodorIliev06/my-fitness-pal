@@ -17,19 +17,12 @@ import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validatePosi
 public final class CreateCardioExerciseCommand implements ExecutableCommand {
     private static final int ARGUMENTS_COUNT = 4;
     private static final String NAME = "create-cardio-exercise";
-    private ExercisePool exercisePool;
+    private final ExercisePool exercisePool;
 
     public CreateCardioExerciseCommand(ExercisePool exercisePool) {
         this.exercisePool = exercisePool;
     }
 
-    /**
-     * Executes the command with the given arguments.
-     *
-     * @param arguments a list of string arguments for the command
-     * @return the result of executing the command
-     * @throws InvalidCommandException if the command execution fails due to invalid arguments or other reasons
-     */
     @Override
     public String execute(List<String> arguments) throws InvalidCommandException {
         validateArgumentsCount(arguments, ARGUMENTS_COUNT);
@@ -46,21 +39,11 @@ public final class CreateCardioExerciseCommand implements ExecutableCommand {
         return String.format("%s was created successfully!", name);
     }
 
-    /**
-     * Returns the name of the command.
-     *
-     * @return the command's name as a string
-     */
     @Override
     public String name() {
         return NAME;
     }
 
-    /**
-     * Provides help information for the command.
-     *
-     * @return a string containing help information about the command
-     */
     @Override
     public String getHelp() {
         return "Usage: " + NAME + " <name> <duration> <burnedCalories> <startTime>";

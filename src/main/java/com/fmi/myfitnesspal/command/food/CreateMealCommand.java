@@ -10,7 +10,6 @@ import com.fmi.myfitnesspal.food.MealPool;
 import com.fmi.myfitnesspal.food.MealId;
 import com.fmi.myfitnesspal.food.Meal;
 
-
 import java.util.List;
 
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
@@ -19,16 +18,12 @@ import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDouble;
 public final class CreateMealCommand implements ExecutableCommand {
     private static final String COMMAND_NAME = "create-meal";
     private final MealPool meals;
-    private final FoodPool foods;
+    private final FoodPool foodPool;
 
-    public CreateMealCommand(MealPool meals, FoodPool foods) {
+    public CreateMealCommand(MealPool meals, FoodPool foodPool) {
         this.meals = meals;
-        this.foods = foods;
+        this.foodPool = foodPool;
     }
-
-    /**
-     * @param arguments a list of string in the format: mealName MealDescription brand1 description1 servings1 and so on
-     */
 
     @Override
     public String execute(List<String> arguments) throws InvalidCommandException {
@@ -40,7 +35,7 @@ public final class CreateMealCommand implements ExecutableCommand {
         for (int i = 2; i < arguments.size() - 2; i += 3) {
             FoodId foodId = new FoodId(arguments.get(i), arguments.get(i + 1));
             double numberOfServings = parseDouble(arguments.get(i + 2));
-            Food food = this.foods.getFood(foodId);
+            Food food = this.foodPool.getFood(foodId);
             resultMeal.addFood(food, numberOfServings);
         }
 

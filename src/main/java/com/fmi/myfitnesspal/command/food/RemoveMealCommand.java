@@ -19,10 +19,10 @@ public final class RemoveMealCommand implements ExecutableCommand {
     private static final String COMMAND_NAME = "remove-meal";
 
     private static final int ARGUMENTS_COUNT = 4;
-    private final FoodDiary diary;
+    private final FoodDiary foodDiary;
 
-    public RemoveMealCommand(FoodDiary diary) {
-        this.diary = diary;
+    public RemoveMealCommand(FoodDiary foodDiary) {
+        this.foodDiary = foodDiary;
     }
 
     @Override
@@ -32,7 +32,7 @@ public final class RemoveMealCommand implements ExecutableCommand {
         LocalDate date = parseDate(arguments.get(0));
         EatingTime eatingTime = parseEatingTime(arguments.get(1));
         MealId mealId = new MealId(arguments.get(2), arguments.get(3));
-        this.diary.removeMeal(date, eatingTime, mealId);
+        this.foodDiary.removeMeal(date, eatingTime, mealId);
 
         return GlobalConstants.SUCCESSFULLY_REMOVED_MEAL_MESSAGE;
 

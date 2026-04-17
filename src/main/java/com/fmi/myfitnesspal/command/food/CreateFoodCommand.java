@@ -18,10 +18,10 @@ public final class CreateFoodCommand implements ExecutableCommand {
     private static final String COMMAND_NAME = "create-food";
     private static final int ARGUMENTS_COUNT = 7;
 
-    private final FoodPool foods;
+    private final FoodPool foodPool;
 
-    public CreateFoodCommand(FoodPool foods) {
-        this.foods = foods;
+    public CreateFoodCommand(FoodPool foodPool) {
+        this.foodPool = foodPool;
     }
 
     @Override
@@ -29,7 +29,7 @@ public final class CreateFoodCommand implements ExecutableCommand {
         validateArgumentsCount(arguments, ARGUMENTS_COUNT);
 
         Food newFood = parseFood(arguments);
-        this.foods.addFood(newFood);
+        this.foodPool.addFood(newFood);
 
         return GlobalConstants.SUCCESSFULLY_CREATED_FOOD_MESSAGE;
     }

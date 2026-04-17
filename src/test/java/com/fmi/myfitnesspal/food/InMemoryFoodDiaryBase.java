@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import java.util.Optional;
 
-public class FoodDiaryBase {
+public class InMemoryFoodDiaryBase {
 
     public DailyFoodDiary diary;
     public Food firstFood;
