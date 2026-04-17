@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public final class DailyExerciseDiary implements ExerciseDiaryAPI {
-    private Map<String, Exercise> dailyExercises = new HashMap<>();
+public final class DailyExerciseDiary {
+    private final Map<String, Exercise> dailyExercises = new HashMap<>();
     private final ExercisePool exercisePool;
     private int burnedDailyCalories;
 
@@ -17,16 +17,13 @@ public final class DailyExerciseDiary implements ExerciseDiaryAPI {
         burnedDailyCalories = 0;
     }
 
-    @Override
-    public void logExercise(String exerciseName)
-        throws UnknownExerciseException {
+    public void logExercise(String exerciseName) throws UnknownExerciseException {
         Exercise newExercise = exercisePool.getExerciseByName(exerciseName);
 
         dailyExercises.put(exerciseName, newExercise);
         burnedDailyCalories += newExercise.burnedCalories();
     }
 
-    @Override
     public void removeExercise(String exerciseName) throws UnknownExerciseException {
         if (!dailyExercises.containsKey(exerciseName)) {
             throw new UnknownExerciseException(
@@ -37,7 +34,6 @@ public final class DailyExerciseDiary implements ExerciseDiaryAPI {
         dailyExercises.remove(exerciseName);
     }
 
-    @Override
     public List<Exercise> getDailyExercise() {
         return List.copyOf(dailyExercises.values());
     }

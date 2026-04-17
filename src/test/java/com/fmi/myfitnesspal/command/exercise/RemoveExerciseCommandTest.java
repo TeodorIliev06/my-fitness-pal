@@ -7,6 +7,7 @@ import com.fmi.myfitnesspal.exception.UnknownExerciseException;
 import com.fmi.myfitnesspal.exercise.CardioExercise;
 import com.fmi.myfitnesspal.exercise.Exercise;
 import com.fmi.myfitnesspal.exercise.ExerciseDiary;
+import com.fmi.myfitnesspal.exercise.InMemoryExerciseDiary;
 import com.fmi.myfitnesspal.exercise.ExercisePool;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +26,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public final class RemoveExerciseCommandTest {
     ExercisePool poolMock = mock(ExercisePool.class);
-    ExerciseDiary diary = new ExerciseDiary(poolMock);
+    ExerciseDiary diary = new InMemoryExerciseDiary(poolMock);
     ExecutableCommand command = new RemoveExerciseCommand(diary);
     CardioExercise ex1 = new CardioExercise("ex1", 1, 1, LocalTime.now());
 

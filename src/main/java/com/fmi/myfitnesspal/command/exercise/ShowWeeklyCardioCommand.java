@@ -2,7 +2,6 @@ package com.fmi.myfitnesspal.command.exercise;
 
 import com.fmi.myfitnesspal.command.ExecutableCommand;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
-import com.fmi.myfitnesspal.exercise.ExerciseCalculator;
 import com.fmi.myfitnesspal.exercise.ExerciseDiary;
 import com.fmi.myfitnesspal.exercise.WeeklyCardioSummary;
 
@@ -16,10 +15,10 @@ public final class ShowWeeklyCardioCommand implements ExecutableCommand {
     private static final String COMMAND_NAME = "show-weekly-cardio";
     private static final int ARGUMENTS_COUNT = 1;
 
-    private final ExerciseDiary diary;
+    private final ExerciseDiary exerciseDiary;
 
-    public ShowWeeklyCardioCommand(ExerciseDiary diary) {
-        this.diary = diary;
+    public ShowWeeklyCardioCommand(ExerciseDiary exerciseDiary) {
+        this.exerciseDiary = exerciseDiary;
     }
 
     @Override
@@ -27,7 +26,7 @@ public final class ShowWeeklyCardioCommand implements ExecutableCommand {
         validateArgumentsCount(arguments, ARGUMENTS_COUNT);
 
         int weekNumber = getWeekNumber(arguments.get(0));
-        WeeklyCardioSummary summary = ExerciseCalculator.getWeeklyCardio(diary, weekNumber);
+        WeeklyCardioSummary summary = exerciseDiary.getWeeklyCardioSummary(weekNumber);
 
         return buildReport(summary);
     }

@@ -34,11 +34,19 @@ import com.fmi.myfitnesspal.command.utility.NutritionSliceMapper;
 import com.fmi.myfitnesspal.command.water.RemoveWaterCommand;
 import com.fmi.myfitnesspal.command.water.RemoveWaterPortionCommand;
 import com.fmi.myfitnesspal.exercise.ExerciseDiary;
+import com.fmi.myfitnesspal.exercise.InMemoryExerciseDiary;
 import com.fmi.myfitnesspal.exercise.ExercisePool;
+import com.fmi.myfitnesspal.exercise.InMemoryExercisePool;
 import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.FoodPool;
 import com.fmi.myfitnesspal.food.MealPool;
 import com.fmi.myfitnesspal.calorie.CalorieGoalHolder;
+import com.fmi.myfitnesspal.persistence.food.FoodDiaryFactory;
+import com.fmi.myfitnesspal.persistence.food.FoodDiaryDtoMapper;
+import com.fmi.myfitnesspal.persistence.food.FoodPoolFactory;
+import com.fmi.myfitnesspal.persistence.food.FoodDtoMapper;
+import com.fmi.myfitnesspal.persistence.water.WaterDiaryFactory;
+import com.fmi.myfitnesspal.persistence.water.DailyWaterEntryDtoMapper;
 import com.fmi.myfitnesspal.registration_cli.UserRegistration;
 import com.fmi.myfitnesspal.user.UserHolder;
 import com.fmi.myfitnesspal.water.WaterDiary;
@@ -50,22 +58,30 @@ import com.fmi.myfitnesspal.chart.PieChartDisplayer;
 
 import org.external.chart.BarChartWindow;
 import org.external.chart.PieChartWindow;
+import org.external.json.JsonConverter;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
+import java.nio.file.Path;
 import java.util.Scanner;
 
 public final class Main {
+    private static final boolean SHOULD_STORE_FOOD_IN_FILE = true;
+    private static final boolean SHOULD_STORE_WATER_IN_FILE = true;
+
+    private static final Path FOOD_POOL_FILE_PATH = Path.of("food_pool.json");
+    private static final Path WATER_DIARY_FILE_PATH = Path.of("water_diary.json");
+    private static final Path FOOD_DIARY_FILE_PATH = Path.of("food_diary.json");
+
     private Main() {
     }
 
     public static void main(String[] args) {
         UserHolder userHolder = new UserHolder();
         CalorieGoalHolder calorieGoalHolder = new CalorieGoalHolder();
-        WaterDiary waterDiary = new WaterDiary();
-        FoodDiary foodDiary = new FoodDiary();
-        FoodPool foodPool = new FoodPool();
         MealPool mealPool = new MealPool();
-        ExercisePool exercisePool = new ExercisePool();
-        ExerciseDiary exerciseDiary = new ExerciseDiary(exercisePool);
+        ExercisePool exercisePool = new InMemoryExercisePool();
+        ExerciseDiary exerciseDiary = new InMemoryExerciseDiary(exercisePool);
         ExecutableCommandRegistry registry = new ExecutableCommandRegistry();
         CommandParser parser = new CommandParser();
         CommandExecutor executor = new CommandExecutor(registry);
@@ -75,6 +91,35 @@ public final class Main {
 
         BarChartDisplayer barChartDisplayer = new BarChartWindow();
         PieChartDisplayer pieChartDisplayer = new PieChartWindow();
+
+        JsonMapper jsonMapper = JsonMapper.builder()
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .build();
+        JsonConverter jsonConverter = new JsonConverter(jsonMapper);
+
+        FoodDtoMapper foodDtoMapper = new FoodDtoMapper();
+        FoodPool foodPool = new FoodPoolFactory(
+                SHOULD_STORE_FOOD_IN_FILE,
+                jsonConverter,
+                foodDtoMapper,
+                FOOD_POOL_FILE_PATH
+        ).create();
+
+        DailyWaterEntryDtoMapper dailyWaterEntryDtoMapper = new DailyWaterEntryDtoMapper();
+        WaterDiary waterDiary = new WaterDiaryFactory(
+                SHOULD_STORE_WATER_IN_FILE,
+                jsonConverter,
+                dailyWaterEntryDtoMapper,
+                WATER_DIARY_FILE_PATH
+        ).create();
+
+        FoodDiaryDtoMapper foodDiaryDtoMapper = new FoodDiaryDtoMapper(foodDtoMapper);
+        FoodDiary foodDiary = new FoodDiaryFactory(
+                SHOULD_STORE_FOOD_IN_FILE,
+                jsonConverter,
+                foodDiaryDtoMapper,
+                FOOD_DIARY_FILE_PATH
+        ).create();
 
         fillRegistry(registry, waterDiary, foodPool, foodDiary,
                 mealPool, exercisePool, exerciseDiary, userHolder,

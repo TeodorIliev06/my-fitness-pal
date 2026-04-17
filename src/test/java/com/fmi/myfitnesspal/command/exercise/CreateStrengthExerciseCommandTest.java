@@ -3,6 +3,7 @@ package com.fmi.myfitnesspal.command.exercise;
 import com.fmi.myfitnesspal.command.ExecutableCommand;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import com.fmi.myfitnesspal.exercise.ExercisePool;
+import com.fmi.myfitnesspal.exercise.InMemoryExercisePool;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 public final class CreateStrengthExerciseCommandTest {
-    ExercisePool pool = new ExercisePool();
+    ExercisePool pool = new InMemoryExercisePool();
     ExecutableCommand command = new CreateStrengthExerciseCommand(pool);
 
     @ParameterizedTest

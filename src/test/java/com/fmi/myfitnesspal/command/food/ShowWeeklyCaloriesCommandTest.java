@@ -22,8 +22,8 @@ import static org.mockito.Mockito.when;
 public final class ShowWeeklyCaloriesCommandTest {
 
     private static final int TARGET_WEEK = 2;
-    private static final String TARGET_WEEK_STR = String.valueOf(TARGET_WEEK);
     private static final String DATE_IN_TARGET_WEEK = "08.01.2024";
+    private static final String TARGET_WEEK_STR = String.valueOf(TARGET_WEEK);
     private static final WeeklyNutritionSummary EMPTY_SUMMARY =
             new WeeklyNutritionSummary(TARGET_WEEK, 0, Optional.empty(), Optional.empty(), Optional.empty());
 

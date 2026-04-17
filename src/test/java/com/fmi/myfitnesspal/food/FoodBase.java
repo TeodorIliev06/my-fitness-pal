@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public class FoodBase {
 
-    public FoodPool foodPool;
+    public InMemoryFoodPool inMemoryFoodPool;
     public Food firstFood;
     public Food secondFood;
 
@@ -16,7 +16,7 @@ public class FoodBase {
      */
     @BeforeEach
     public void setUp() {
-        foodPool = new FoodPool();
+        inMemoryFoodPool = new InMemoryFoodPool();
         firstFood = Food.builder(new FoodId("apple", "green"), 20, 50)
                 .setFats(Optional.of(12.0))
                 .setCarbs(Optional.of(14.0))

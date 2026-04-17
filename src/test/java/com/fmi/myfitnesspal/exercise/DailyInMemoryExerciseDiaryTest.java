@@ -15,8 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class DailyExerciseDiaryTest {
-    static ExercisePool testPool = mock(ExercisePool.class);
+public class DailyInMemoryExerciseDiaryTest {
+    static InMemoryExercisePool testPool = mock(InMemoryExercisePool.class);
     DailyExerciseDiary testDiary = new DailyExerciseDiary(testPool);
     private static final String CARDIO_NAME = "FstC";
     private static final String STRENGTH_NAME = "Fst";

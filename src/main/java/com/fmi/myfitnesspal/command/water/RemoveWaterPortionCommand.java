@@ -13,14 +13,14 @@ import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDate;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parsePortion;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 
-public class RemoveWaterPortionCommand implements ExecutableCommand {
+public final class RemoveWaterPortionCommand implements ExecutableCommand {
     private static final String COMMAND_NAME = "remove-water-portion";
     private static final int ARGUMENTS_COUNT = 2;
 
-    private final WaterDiary diary;
+    private final WaterDiary waterDiary;
 
-    public RemoveWaterPortionCommand(WaterDiary diary) {
-        this.diary = diary;
+    public RemoveWaterPortionCommand(WaterDiary waterDiary) {
+        this.waterDiary = waterDiary;
     }
 
     /**
@@ -38,7 +38,7 @@ public class RemoveWaterPortionCommand implements ExecutableCommand {
         Portion portion = parsePortion(arguments.get(1));
 
         try {
-            diary.removeWater(date, portion);
+            waterDiary.removeWater(date, portion);
         } catch (WaterNotLoggedException e) {
             return "No water intake is recorded for the given date";
         }
