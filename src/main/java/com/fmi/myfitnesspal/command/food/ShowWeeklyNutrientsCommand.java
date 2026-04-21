@@ -1,5 +1,6 @@
 package com.fmi.myfitnesspal.command.food;
 
+import com.fmi.myfitnesspal.utility.WeekYear;
 import com.fmi.myfitnesspal.command.utility.NutritionSliceMapper;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import com.fmi.myfitnesspal.food.FoodDiary;
@@ -9,9 +10,16 @@ import com.fmi.myfitnesspal.chart.PieSlice;
 
 import java.util.List;
 
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.getWeekNumber;
+import static com.fmi.myfitnesspal.utility.DateHelper.parseWeekYear;
 
 public final class ShowWeeklyNutrientsCommand extends ChartCommand {
+
+    @Override protected int minArgCount() {
+        return 1;
+    }
+    @Override protected int maxArgCount() {
+        return 2;
+    }
 
     private static final String COMMAND_NAME = "show-weekly-nutrients";
 
@@ -21,11 +29,11 @@ public final class ShowWeeklyNutrientsCommand extends ChartCommand {
     }
 
     @Override
-    protected ChartData buildChart(String argument) throws InvalidCommandException {
-        int weekNumber = getWeekNumber(argument);
-        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(weekNumber);
+    protected ChartData buildChart(List<String> arguments) throws InvalidCommandException {
+        WeekYear weekYear = parseWeekYear(arguments);
+        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(weekYear.weekNumber(), weekYear.year());
 
-        String title = "Weekly Nutrients — Week " + weekNumber;
+        String title = "Weekly Nutrients — Week " + weekYear.weekNumber();
 
         List<PieSlice> slices = sliceMapper.fromNutritionSummary(summary);
         return new ChartData(title, slices);

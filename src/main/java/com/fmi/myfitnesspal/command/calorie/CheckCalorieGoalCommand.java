@@ -14,8 +14,8 @@ import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
 
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDate;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.toWeekNumber;
+import static com.fmi.myfitnesspal.utility.DateHelper.parseDate;
+import static com.fmi.myfitnesspal.utility.DateHelper.getWeekNumberFrom;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 
 public final class CheckCalorieGoalCommand implements ExecutableCommand {
@@ -69,7 +69,7 @@ public final class CheckCalorieGoalCommand implements ExecutableCommand {
     private void displayBarChart(CalorieGoal activeGoal,
                                  List<DailyNutritionSummary> weeklySummaries,
                                  LocalDate targetDate) {
-        int weekNumber = toWeekNumber(targetDate);
+        int weekNumber = getWeekNumberFrom(targetDate);
 
         String chartTitle = String.format(
                 "Week %d — Daily Calorie Goal: %d calories",

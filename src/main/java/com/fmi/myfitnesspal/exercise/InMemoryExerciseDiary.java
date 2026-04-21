@@ -4,11 +4,13 @@ import com.fmi.myfitnesspal.constants.GlobalConstants;
 import com.fmi.myfitnesspal.exception.UnknownExerciseException;
 
 import java.time.LocalDate;
-import java.time.temporal.IsoFields;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.fmi.myfitnesspal.utility.DateHelper.getYearFrom;
+import static com.fmi.myfitnesspal.utility.DateHelper.getWeekNumberFrom;
 
 public final class InMemoryExerciseDiary implements ExerciseDiary {
     private final Map<LocalDate, DailyExerciseDiary> diary;
@@ -36,15 +38,16 @@ public final class InMemoryExerciseDiary implements ExerciseDiary {
         return getOrCreateDailyDiary(date).getBurnedDailyCalories();
     }
 
-    public List<CardioExercise> getCardioExercisesByWeekNumber(int weekNumber) {
+    public List<CardioExercise> getCardioExercisesByWeekNumber(int weekNumber, int year) {
         return diary.keySet().stream()
-                .filter(date -> date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) == weekNumber)
+                .filter(date -> getWeekNumberFrom(date) == weekNumber
+                        && getYearFrom(date) == year)
                 .flatMap(date -> diary.get(date).getDailyCardioExercises().stream())
                 .collect(Collectors.toList());
     }
 
-    public WeeklyCardioSummary getWeeklyCardioSummary(int weekNumber) {
-        List<CardioExercise> weeklyCardio = getCardioExercisesByWeekNumber(weekNumber);
+    public WeeklyCardioSummary getWeeklyCardioSummary(int weekNumber, int year) {
+        List<CardioExercise> weeklyCardio = getCardioExercisesByWeekNumber(weekNumber, year);
 
         int burnedCalories = weeklyCardio.stream()
                 .mapToInt(CardioExercise::burnedCalories)
@@ -54,12 +57,11 @@ public final class InMemoryExerciseDiary implements ExerciseDiary {
                 .mapToInt(CardioExercise::durationInMinutes)
                 .sum();
 
-        return new WeeklyCardioSummary(weekNumber, burnedCalories, totalMinutes);
+        return new WeeklyCardioSummary(weekNumber, year, burnedCalories, totalMinutes);
     }
 
     public WeeklyCardioSummary getWeeklyCardioSummary(LocalDate date) {
-        int weekNumber = date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-        return getWeeklyCardioSummary(weekNumber);
+        return getWeeklyCardioSummary(getWeekNumberFrom(date), getYearFrom(date));
     }
 
     private DailyExerciseDiary getOrCreateDailyDiary(LocalDate date) {

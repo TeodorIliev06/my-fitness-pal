@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDate;
+import static com.fmi.myfitnesspal.utility.DateHelper.parseDate;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 
 public final class ShowDailyExerciseCommand implements ExecutableCommand {

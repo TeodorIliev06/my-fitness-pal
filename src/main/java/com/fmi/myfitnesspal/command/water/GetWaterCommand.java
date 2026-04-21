@@ -7,8 +7,8 @@ import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.DATE_FORMATTER;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDate;
+import static com.fmi.myfitnesspal.utility.DateHelper.parseDate;
+import static com.fmi.myfitnesspal.utility.DateHelper.DATE_FORMATTER;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 
 public final class GetWaterCommand implements ExecutableCommand {

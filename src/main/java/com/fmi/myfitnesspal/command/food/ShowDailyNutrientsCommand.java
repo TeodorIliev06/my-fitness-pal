@@ -10,10 +10,17 @@ import com.fmi.myfitnesspal.chart.PieSlice;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.DATE_FORMATTER;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDate;
+import static com.fmi.myfitnesspal.utility.DateHelper.parseDate;
+import static com.fmi.myfitnesspal.utility.DateHelper.DATE_FORMATTER;
 
 public final class ShowDailyNutrientsCommand extends ChartCommand {
+
+    @Override protected int minArgCount() {
+        return 1;
+    }
+    @Override protected int maxArgCount() {
+        return 1;
+    }
 
     private static final String COMMAND_NAME = "show-daily-nutrients";
 
@@ -23,8 +30,8 @@ public final class ShowDailyNutrientsCommand extends ChartCommand {
     }
 
     @Override
-    protected ChartData buildChart(String argument) throws InvalidCommandException {
-        LocalDate date = parseDate(argument);
+    protected ChartData buildChart(List<String> arguments) throws InvalidCommandException {
+        LocalDate date = parseDate(arguments.get(0));
         DailyNutritionSummary summary = foodDiary.getDailyNutritionSummary(date);
 
         String title = "Daily Nutrients — " + date.format(DATE_FORMATTER);

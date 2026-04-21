@@ -5,10 +5,11 @@ import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.IsoFields;
 import java.util.List;
 import java.util.Optional;
 
+import static com.fmi.myfitnesspal.utility.DateHelper.getYearFrom;
+import static com.fmi.myfitnesspal.utility.DateHelper.getWeekNumberFrom;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -20,7 +21,10 @@ public final class InMemoryFoodDiaryTest {
     private static final LocalDate ANOTHER_DATE_IN_SAME_WEEK = LocalDate.of(2025, 5, 28);
     private static final LocalDate DATE_IN_DIFFERENT_WEEK = LocalDate.of(2025, 6, 2);
     private static final LocalDate SUNDAY_OF_CONSUMPTION_WEEK = LocalDate.of(2025, 6, 1);
-    private static final int CONSUMPTION_WEEK = CONSUMPTION_DATE.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+    private static final LocalDate DATE_IN_SAME_WEEK_DIFFERENT_YEAR = LocalDate.of(2024, 5, 27);
+
+    private static final int CONSUMPTION_WEEK = getWeekNumberFrom(CONSUMPTION_DATE);
+    private static final int CONSUMPTION_YEAR = getYearFrom(CONSUMPTION_DATE);
     private static final int DAYS_IN_WEEK = 7;
 
     private static final Food APPLE =
@@ -191,7 +195,7 @@ public final class InMemoryFoodDiaryTest {
 
     @Test
     public void testGetFoodsByWeekNumberReturnsEmptyListWhenWeekHasNoEntries() {
-        List<Food> foods = foodDiary.getFoodsByWeekNumber(CONSUMPTION_WEEK);
+        List<Food> foods = foodDiary.getFoodsByWeekNumber(CONSUMPTION_WEEK, CONSUMPTION_YEAR);
 
         assertTrue(foods.isEmpty(),
                 "getFoodsByWeekNumber must return an empty list when no foods are logged for that week");
@@ -202,7 +206,7 @@ public final class InMemoryFoodDiaryTest {
         foodDiary.addFood(CONSUMPTION_DATE, EatingTime.BREAKFAST, APPLE, 1);
         foodDiary.addFood(ANOTHER_DATE_IN_SAME_WEEK, EatingTime.LUNCH, BANANA, 1);
 
-        List<Food> weekFoods = foodDiary.getFoodsByWeekNumber(CONSUMPTION_WEEK);
+        List<Food> weekFoods = foodDiary.getFoodsByWeekNumber(CONSUMPTION_WEEK, CONSUMPTION_YEAR);
 
         assertEquals(2, weekFoods.size(),
                 "getFoodsByWeekNumber must aggregate foods logged on different days of the same week");
@@ -213,12 +217,25 @@ public final class InMemoryFoodDiaryTest {
         foodDiary.addFood(CONSUMPTION_DATE, EatingTime.BREAKFAST, APPLE, 1);
         foodDiary.addFood(DATE_IN_DIFFERENT_WEEK, EatingTime.BREAKFAST, BANANA, 1);
 
-        List<Food> weekFoods = foodDiary.getFoodsByWeekNumber(CONSUMPTION_WEEK);
+        List<Food> weekFoods = foodDiary.getFoodsByWeekNumber(CONSUMPTION_WEEK, CONSUMPTION_YEAR);
 
         assertEquals(1, weekFoods.size(),
                 "getFoodsByWeekNumber must exclude foods logged in a different week");
         assertEquals(APPLE.getId(), weekFoods.get(0).getId(),
                 "The only returned food must be the one logged in the target week");
+    }
+
+    @Test
+    public void testGetFoodsByWeekNumberExcludesFoodsFromSameWeekNumberInDifferentYear() {
+        foodDiary.addFood(CONSUMPTION_DATE, EatingTime.BREAKFAST, APPLE, 1);
+        foodDiary.addFood(DATE_IN_SAME_WEEK_DIFFERENT_YEAR, EatingTime.BREAKFAST, BANANA, 1);
+
+        List<Food> weekFoods = foodDiary.getFoodsByWeekNumber(CONSUMPTION_WEEK, CONSUMPTION_YEAR);
+
+        assertEquals(1, weekFoods.size(),
+                "getFoodsByWeekNumber must exclude foods from a different year even when the week number matches");
+        assertEquals(APPLE.getId(), weekFoods.get(0).getId(),
+                "The only returned food must be from the target year");
     }
 
     @Test
@@ -295,10 +312,18 @@ public final class InMemoryFoodDiaryTest {
 
     @Test
     public void testGetWeeklyNutritionSummaryByWeekNumberReturnsCorrectWeekNumber() {
-        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(CONSUMPTION_WEEK);
+        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(CONSUMPTION_WEEK, CONSUMPTION_YEAR);
 
         assertEquals(CONSUMPTION_WEEK, summary.weekNumber(),
                 "The summary weekNumber must match the week that was queried");
+    }
+
+    @Test
+    public void testGetWeeklyNutritionSummaryByWeekNumberReturnsCorrectYear() {
+        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(CONSUMPTION_WEEK, CONSUMPTION_YEAR);
+
+        assertEquals(CONSUMPTION_YEAR, summary.year(),
+                "The summary year must match the year that was queried");
     }
 
     @Test
@@ -311,7 +336,7 @@ public final class InMemoryFoodDiaryTest {
 
     @Test
     public void testGetWeeklyNutritionSummaryByWeekNumberReturnsZeroCaloriesForEmptyWeek() {
-        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(CONSUMPTION_WEEK);
+        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(CONSUMPTION_WEEK, CONSUMPTION_YEAR);
 
         assertEquals(0.0, summary.calories(),
                 "Calories must be 0.0 when no food has been logged in that week");
@@ -323,7 +348,7 @@ public final class InMemoryFoodDiaryTest {
         foodDiary.addFood(ANOTHER_DATE_IN_SAME_WEEK, EatingTime.LUNCH, BANANA, 1);
 
         double expectedCalories = APPLE.getCalories() + BANANA.getCalories();
-        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(CONSUMPTION_WEEK);
+        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(CONSUMPTION_WEEK, CONSUMPTION_YEAR);
 
         assertEquals(expectedCalories, summary.calories(),
                 "Calories must be summed across all days that belong to the queried week");
@@ -335,10 +360,21 @@ public final class InMemoryFoodDiaryTest {
         foodDiary.addFood(ANOTHER_DATE_IN_SAME_WEEK, EatingTime.LUNCH, BANANA, 1);
 
         double expectedCalories = APPLE.getCalories() + BANANA.getCalories();
-        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(CONSUMPTION_WEEK);
+        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(CONSUMPTION_DATE);
 
         assertEquals(expectedCalories, summary.calories(),
                 "Calories must be summed across all days that belong to the queried week");
+    }
+
+    @Test
+    public void testGetWeeklyNutritionSummaryExcludesFoodsFromSameWeekNumberInDifferentYear() {
+        foodDiary.addFood(CONSUMPTION_DATE, EatingTime.BREAKFAST, APPLE, 1);
+        foodDiary.addFood(DATE_IN_SAME_WEEK_DIFFERENT_YEAR, EatingTime.BREAKFAST, BANANA, 1);
+
+        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(CONSUMPTION_WEEK, CONSUMPTION_YEAR);
+
+        assertEquals(APPLE.getCalories(), summary.calories(),
+                "The weekly summary must exclude calories from the same week number in a different year");
     }
 
     @Test

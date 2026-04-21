@@ -17,6 +17,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
+import static com.fmi.myfitnesspal.utility.DateHelper.MIN_SUPPORTED_WEEK_NUMBER;
+import static com.fmi.myfitnesspal.utility.DateHelper.MAX_SUPPORTED_WEEK_NUMBER;
+import static com.fmi.myfitnesspal.utility.DateHelper.MIN_SUPPORTED_YEAR;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,10 +32,13 @@ import static org.mockito.Mockito.when;
 public final class ShowWeeklyNutrientsCommandTest {
 
     private static final int TARGET_WEEK = 2;
+    private static final int TARGET_YEAR = 2024;
     private static final String TARGET_WEEK_STR = String.valueOf(TARGET_WEEK);
+    private static final String TARGET_YEAR_STR = String.valueOf(TARGET_YEAR);
     private static final String DATE_IN_TARGET_WEEK = "08.01.2024";
-    private static final WeeklyNutritionSummary EMPTY_SUMMARY =
-            new WeeklyNutritionSummary(TARGET_WEEK, 0, Optional.empty(), Optional.empty(), Optional.empty());
+
+    private static final WeeklyNutritionSummary EMPTY_SUMMARY = new WeeklyNutritionSummary(TARGET_WEEK, TARGET_YEAR,
+            0, Optional.empty(), Optional.empty(), Optional.empty());
 
     @Mock
     private FoodDiary foodDiaryMock;
@@ -48,42 +54,52 @@ public final class ShowWeeklyNutrientsCommandTest {
     private ShowWeeklyNutrientsCommand command;
 
     @Test
-    void testExecuteByWeekNumberOpensChart() throws InvalidCommandException {
-        stubDiaryReturnsEmptySummary();
+    void testExecuteByWeekNumberAndYearOpensChart() throws InvalidCommandException {
+        stubDiaryForWeekYear();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
-        command.execute(List.of(TARGET_WEEK_STR));
+        command.execute(List.of(TARGET_WEEK_STR, TARGET_YEAR_STR));
 
         verify(chartDisplayerMock).display(any(), any());
     }
 
     @Test
-    void testExecuteByWeekNumberReturnsChartOpenedMessage() throws InvalidCommandException {
-        stubDiaryReturnsEmptySummary();
+    void testExecuteByWeekNumberAndYearReturnsChartOpenedMessage() throws InvalidCommandException {
+        stubDiaryForWeekYear();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
-        String result = command.execute(List.of(TARGET_WEEK_STR));
+        String result = command.execute(List.of(TARGET_WEEK_STR, TARGET_YEAR_STR));
 
         assertTrue(result.startsWith("Chart opened:"),
                 "execute() should return a message starting with \"Chart opened:\"");
     }
 
     @Test
-    void testExecuteByDateResolvesToCorrectWeek() throws InvalidCommandException {
-        stubDiaryReturnsEmptySummary();
+    void testExecuteByWeekNumberAndYearDelegatesToDiary() throws InvalidCommandException {
+        stubDiaryForWeekYear();
+        when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
+
+        command.execute(List.of(TARGET_WEEK_STR, TARGET_YEAR_STR));
+
+        verify(foodDiaryMock).getWeeklyNutritionSummary(TARGET_WEEK, TARGET_YEAR);
+    }
+
+    @Test
+    void testExecuteByDateResolvesToCorrectWeekAndYear() throws InvalidCommandException {
+        stubDiaryForDate();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
         command.execute(List.of(DATE_IN_TARGET_WEEK));
 
-        verify(foodDiaryMock).getWeeklyNutritionSummary(TARGET_WEEK);
+        verify(foodDiaryMock).getWeeklyNutritionSummary(TARGET_WEEK, TARGET_YEAR);
     }
 
     @Test
     void testExecuteChartTitleContainsWeekNumber() throws InvalidCommandException {
-        stubDiaryReturnsEmptySummary();
+        stubDiaryForWeekYear();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
-        command.execute(List.of(TARGET_WEEK_STR));
+        command.execute(List.of(TARGET_WEEK_STR, TARGET_YEAR_STR));
 
         verify(chartDisplayerMock).display(titleCaptor.capture(), any());
         assertTrue(titleCaptor.getValue().contains(TARGET_WEEK_STR),
@@ -92,10 +108,10 @@ public final class ShowWeeklyNutrientsCommandTest {
 
     @Test
     void testExecutePassesWeeklySummaryToMapper() throws InvalidCommandException {
-        stubDiaryReturnsEmptySummary();
+        stubDiaryForWeekYear();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(List.of());
 
-        command.execute(List.of(TARGET_WEEK_STR));
+        command.execute(List.of(TARGET_WEEK_STR, TARGET_YEAR_STR));
 
         verify(sliceMapperMock).fromNutritionSummary(EMPTY_SUMMARY);
     }
@@ -107,10 +123,10 @@ public final class ShowWeeklyNutrientsCommandTest {
                 new PieSlice("Carbs", 60.0),
                 new PieSlice("Fats", 6.0)
         );
-        stubDiaryReturnsEmptySummary();
+        stubDiaryForWeekYear();
         when(sliceMapperMock.fromNutritionSummary(any())).thenReturn(expectedSlices);
 
-        command.execute(List.of(TARGET_WEEK_STR));
+        command.execute(List.of(TARGET_WEEK_STR, TARGET_YEAR_STR));
 
         verify(chartDisplayerMock).display(any(), eq(expectedSlices));
     }
@@ -124,10 +140,18 @@ public final class ShowWeeklyNutrientsCommandTest {
     }
 
     @Test
+    void testExecuteWeekNumberWithoutYearIsRejected() {
+        assertThrows(InvalidCommandException.class,
+                () -> command.execute(List.of(TARGET_WEEK_STR)),
+                "A week number without a year should be rejected");
+        verify(chartDisplayerMock, never()).display(any(), any());
+    }
+
+    @Test
     void testExecuteMoreArguments() {
         assertThrows(InvalidCommandException.class,
-                () -> command.execute(List.of(TARGET_WEEK_STR, DATE_IN_TARGET_WEEK)),
-                "execute() with more than one argument should throw InvalidCommandException");
+                () -> command.execute(List.of(TARGET_WEEK_STR, TARGET_YEAR_STR, DATE_IN_TARGET_WEEK)),
+                "execute() with three arguments should throw InvalidCommandException");
         verify(chartDisplayerMock, never()).display(any(), any());
     }
 
@@ -142,7 +166,7 @@ public final class ShowWeeklyNutrientsCommandTest {
     @Test
     void testExecuteWeekNumberBelowMinIsInvalid() {
         assertThrows(InvalidCommandException.class,
-                () -> command.execute(List.of("0")),
+                () -> command.execute(List.of(String.valueOf(MIN_SUPPORTED_WEEK_NUMBER - 1), TARGET_YEAR_STR)),
                 "execute() with week number below 1 should throw InvalidCommandException");
         verify(chartDisplayerMock, never()).display(any(), any());
     }
@@ -150,13 +174,26 @@ public final class ShowWeeklyNutrientsCommandTest {
     @Test
     void testExecuteWeekNumberAboveMaxIsInvalid() {
         assertThrows(InvalidCommandException.class,
-                () -> command.execute(List.of("54")),
-                "execute() with week number above 53 should throw InvalidCommandException");
+                () -> command.execute(List.of(String.valueOf(MAX_SUPPORTED_WEEK_NUMBER + 1), TARGET_YEAR_STR)),
+                "execute() with week number above the supported maximum should throw InvalidCommandException");
         verify(chartDisplayerMock, never()).display(any(), any());
     }
 
-    private void stubDiaryReturnsEmptySummary() {
-        when(foodDiaryMock.getWeeklyNutritionSummary(TARGET_WEEK))
+    @Test
+    void testExecuteYearBelowMinIsInvalid() {
+        assertThrows(InvalidCommandException.class,
+                () -> command.execute(List.of(TARGET_WEEK_STR, String.valueOf(MIN_SUPPORTED_YEAR - 1))),
+                "execute() with a year below the supported minimum should throw InvalidCommandException");
+        verify(chartDisplayerMock, never()).display(any(), any());
+    }
+
+    private void stubDiaryForWeekYear() {
+        when(foodDiaryMock.getWeeklyNutritionSummary(TARGET_WEEK, TARGET_YEAR))
+                .thenReturn(EMPTY_SUMMARY);
+    }
+
+    private void stubDiaryForDate() {
+        when(foodDiaryMock.getWeeklyNutritionSummary(TARGET_WEEK, TARGET_YEAR))
                 .thenReturn(EMPTY_SUMMARY);
     }
 }

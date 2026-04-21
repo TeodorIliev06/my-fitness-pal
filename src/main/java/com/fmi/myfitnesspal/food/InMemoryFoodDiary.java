@@ -4,7 +4,6 @@ import com.fmi.myfitnesspal.constants.GlobalConstants;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.IsoFields;
 import java.util.HashMap;
 import java.util.EnumMap;
 import java.util.List;
@@ -14,6 +13,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import static com.fmi.myfitnesspal.utility.DateHelper.getYearFrom;
+import static com.fmi.myfitnesspal.utility.DateHelper.getWeekNumberFrom;
 
 public final class InMemoryFoodDiary implements FoodDiary {
 
@@ -49,9 +51,10 @@ public final class InMemoryFoodDiary implements FoodDiary {
         return getValidatedDailyDiary(date).getMealsByEatingTime(eatingTime);
     }
 
-    public List<Food> getFoodsByWeekNumber(int weekNumber) {
+    public List<Food> getFoodsByWeekNumber(int weekNumber, int year) {
         return diary.keySet().stream()
-                .filter(date -> date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) == weekNumber)
+                .filter(date -> getWeekNumberFrom(date) == weekNumber
+                        && getYearFrom(date) == year)
                 .flatMap(date -> diary.get(date).getAllFoods().stream())
                 .collect(Collectors.toList());
     }
@@ -68,10 +71,11 @@ public final class InMemoryFoodDiary implements FoodDiary {
                 .orElse(List.of());
     }
 
-    public WeeklyNutritionSummary getWeeklyNutritionSummary(int weekNumber) {
-        NutritionTotals totals = sumNutritionFrom(getFoodsByWeekNumber(weekNumber));
+    public WeeklyNutritionSummary getWeeklyNutritionSummary(int weekNumber, int year) {
+        NutritionTotals totals = sumNutritionFrom(getFoodsByWeekNumber(weekNumber, year));
         return new WeeklyNutritionSummary(
                 weekNumber,
+                year,
                 totals.calories(),
                 totals.protein(),
                 totals.carbs(),
@@ -80,8 +84,10 @@ public final class InMemoryFoodDiary implements FoodDiary {
     }
 
     public WeeklyNutritionSummary getWeeklyNutritionSummary(LocalDate date) {
-        int weekNumber = date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-        return getWeeklyNutritionSummary(weekNumber);
+        int weekNumber = getWeekNumberFrom(date);
+        int year = getYearFrom(date);
+
+        return getWeeklyNutritionSummary(weekNumber, year);
     }
 
     public DailyNutritionSummary getDailyNutritionSummary(LocalDate date) {

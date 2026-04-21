@@ -1,6 +1,6 @@
 package com.fmi.myfitnesspal.command.food;
 
-import com.fmi.myfitnesspal.command.ExecutableCommand;
+import com.fmi.myfitnesspal.command.BoundedCommand;
 import com.fmi.myfitnesspal.command.utility.NutritionSliceMapper;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import com.fmi.myfitnesspal.food.FoodDiary;
@@ -9,11 +9,8 @@ import com.fmi.myfitnesspal.chart.PieSlice;
 
 import java.util.List;
 
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
+public abstract class ChartCommand extends BoundedCommand {
 
-public abstract class ChartCommand implements ExecutableCommand {
-
-    private static final int ARGUMENTS_COUNT = 1;
     private static final String CHART_OPENED_PREFIX = "Chart opened: ";
 
     protected final FoodDiary foodDiary;
@@ -29,16 +26,14 @@ public abstract class ChartCommand implements ExecutableCommand {
     }
 
     @Override
-    public final String execute(List<String> arguments) throws InvalidCommandException {
-        validateArgumentsCount(arguments, ARGUMENTS_COUNT);
-
-        ChartData chart = buildChart(arguments.get(0));
+    public final String doExecute(List<String> arguments) throws InvalidCommandException {
+        ChartData chart = buildChart(arguments);
         chartDisplayer.display(chart.title(), chart.slices());
 
         return CHART_OPENED_PREFIX + chart.title();
     }
 
-    protected abstract ChartData buildChart(String argument) throws InvalidCommandException;
+    protected abstract ChartData buildChart(List<String> arguments) throws InvalidCommandException;
 
     protected record ChartData(String title, List<PieSlice> slices) {
 

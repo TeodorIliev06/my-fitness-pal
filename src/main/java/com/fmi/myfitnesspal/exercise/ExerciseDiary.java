@@ -13,7 +13,7 @@ public interface ExerciseDiary {
 
     Collection<Exercise> getDailyExercise(LocalDate date);
 
-    WeeklyCardioSummary getWeeklyCardioSummary(int weekNumber);
+    WeeklyCardioSummary getWeeklyCardioSummary(int weekNumber, int year);
 
     WeeklyCardioSummary getWeeklyCardioSummary(LocalDate consumptionDate);
 }

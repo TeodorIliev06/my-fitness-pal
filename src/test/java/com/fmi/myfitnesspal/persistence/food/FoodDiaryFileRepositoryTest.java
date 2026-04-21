@@ -37,6 +37,9 @@ public final class FoodDiaryFileRepositoryTest {
     private static final MealId BREAKFAST_ID = new MealId("breakfast", "american");
     private static final double SINGLE_SERVING = 1.0;
 
+    private static final int WEEKLY_SUMMARY_WEEK = 15;
+    private static final int WEEKLY_SUMMARY_YEAR = 2025;
+
     @Mock
     private FoodDiary foodDiary;
     @Mock
@@ -197,15 +200,17 @@ public final class FoodDiaryFileRepositoryTest {
 
     @Test
     void testGetWeeklyNutritionSummaryByWeekNumberDelegatesToInnerDiaryAndReturnsResult() {
-        int weekNumber = 15;
-        WeeklyNutritionSummary expectedSummary = new WeeklyNutritionSummary(weekNumber,
+        WeeklyNutritionSummary expectedSummary = new WeeklyNutritionSummary(
+                WEEKLY_SUMMARY_WEEK, WEEKLY_SUMMARY_YEAR,
                 2100.0, Optional.empty(), Optional.empty(), Optional.empty());
-        when(foodDiary.getWeeklyNutritionSummary(weekNumber)).thenReturn(expectedSummary);
+        when(foodDiary.getWeeklyNutritionSummary(WEEKLY_SUMMARY_WEEK, WEEKLY_SUMMARY_YEAR))
+                .thenReturn(expectedSummary);
 
-        WeeklyNutritionSummary result = foodDiaryFileRepository.getWeeklyNutritionSummary(weekNumber);
+        WeeklyNutritionSummary result =
+                foodDiaryFileRepository.getWeeklyNutritionSummary(WEEKLY_SUMMARY_WEEK, WEEKLY_SUMMARY_YEAR);
 
         assertEquals(expectedSummary, result,
-                "getWeeklyNutritionSummary(int) should return the result delegated from the inner FoodDiary");
+                "getWeeklyNutritionSummary(int, int) should return the result delegated from the inner FoodDiary");
         verifyNoInteractions(persistenceStore);
     }
 

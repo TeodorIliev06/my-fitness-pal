@@ -17,13 +17,13 @@ public interface FoodDiary {
 
     List<Meal> getMealsByDateAndEatingTime(LocalDate consumptionDate, EatingTime eatingTime);
 
-    List<Food> getFoodsByWeekNumber(int weekNumber);
+    List<Food> getFoodsByWeekNumber(int weekNumber, int year);
 
     List<Food> getAllFoodsByDate(LocalDate consumptionDate);
 
     List<Food> getAllFoodsByDateAndEatingTime(LocalDate consumptionDate, EatingTime eatingTime);
 
-    WeeklyNutritionSummary getWeeklyNutritionSummary(int weekNumber);
+    WeeklyNutritionSummary getWeeklyNutritionSummary(int weekNumber, int year);
 
     WeeklyNutritionSummary getWeeklyNutritionSummary(LocalDate consumptionDate);
 

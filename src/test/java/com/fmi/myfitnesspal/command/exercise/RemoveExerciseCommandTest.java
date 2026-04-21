@@ -1,7 +1,6 @@
 package com.fmi.myfitnesspal.command.exercise;
 
 import com.fmi.myfitnesspal.command.ExecutableCommand;
-import com.fmi.myfitnesspal.command.utility.CommandUtilities;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import com.fmi.myfitnesspal.exception.UnknownExerciseException;
 import com.fmi.myfitnesspal.exercise.CardioExercise;
@@ -18,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.fmi.myfitnesspal.utility.DateHelper.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -37,7 +37,7 @@ public final class RemoveExerciseCommandTest {
         when(poolMock.getExercises()).thenReturn(exercises);
         when(poolMock.getExerciseByName("ex1")).thenReturn(ex1);
 
-        diary.logExercise(CommandUtilities.parseDate("12.12.2012"), "ex1");
+        diary.logExercise(parseDate("12.12.2012"), "ex1");
         String message = command.execute(List.of("12.12.2012", "ex1"));
         assertEquals("ex1 was removed successfully!", message);
     }

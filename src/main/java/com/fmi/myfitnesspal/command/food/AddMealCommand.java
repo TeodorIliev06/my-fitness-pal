@@ -12,8 +12,8 @@ import com.fmi.myfitnesspal.food.Meal;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.fmi.myfitnesspal.utility.DateHelper.parseDate;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseEatingTime;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDate;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 
 public final class AddMealCommand implements ExecutableCommand {
