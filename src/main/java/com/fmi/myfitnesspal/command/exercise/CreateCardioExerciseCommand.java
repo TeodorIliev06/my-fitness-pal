@@ -9,8 +9,8 @@ import com.fmi.myfitnesspal.exercise.ExercisePool;
 import java.time.LocalTime;
 import java.util.List;
 
+import static com.fmi.myfitnesspal.utility.DateHelper.parseTime;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseInt;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseTime;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validatePositiveValues;
 

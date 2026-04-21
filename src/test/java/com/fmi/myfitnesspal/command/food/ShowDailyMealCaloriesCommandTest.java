@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.DATE_FORMATTER;
+import static com.fmi.myfitnesspal.utility.DateHelper.DATE_FORMATTER;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;

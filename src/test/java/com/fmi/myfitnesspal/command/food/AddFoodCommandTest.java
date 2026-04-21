@@ -1,6 +1,5 @@
 package com.fmi.myfitnesspal.command.food;
 
-import com.fmi.myfitnesspal.command.utility.CommandUtilities;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.InMemoryFoodDiary;
@@ -12,6 +11,8 @@ import com.fmi.myfitnesspal.food.InMemoryFoodPool;
 import com.fmi.myfitnesspal.constants.GlobalConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static com.fmi.myfitnesspal.utility.DateHelper.DATE_FORMATTER;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -32,7 +33,7 @@ public final class AddFoodCommandTest {
         foodDiary = new InMemoryFoodDiary();
         foodPool = new InMemoryFoodPool();
         addFoodCommand = new AddFoodCommand(foodDiary, foodPool);
-        date = LocalDate.parse("12.03.2024", CommandUtilities.DATE_FORMATTER);
+        date = LocalDate.parse("12.03.2024", DATE_FORMATTER);
 
         Food food =  Food.builder(new FoodId("Apple", "Red"), 1, 10)
                 .setCarbs(Optional.empty())

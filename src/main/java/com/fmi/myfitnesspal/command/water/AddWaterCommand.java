@@ -7,7 +7,7 @@ import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDate;
+import static com.fmi.myfitnesspal.utility.DateHelper.parseDate;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseInt;
 

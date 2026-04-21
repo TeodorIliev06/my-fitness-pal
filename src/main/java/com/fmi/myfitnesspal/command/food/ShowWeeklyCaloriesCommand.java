@@ -1,19 +1,25 @@
 package com.fmi.myfitnesspal.command.food;
 
-import com.fmi.myfitnesspal.command.ExecutableCommand;
+import com.fmi.myfitnesspal.command.BoundedCommand;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.WeeklyNutritionSummary;
+import com.fmi.myfitnesspal.utility.WeekYear;
 
 import java.util.List;
 
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.getWeekNumber;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
+import static com.fmi.myfitnesspal.utility.DateHelper.parseWeekYear;
 
-public final class ShowWeeklyCaloriesCommand implements ExecutableCommand {
+public final class ShowWeeklyCaloriesCommand extends BoundedCommand {
+
+    @Override protected int minArgCount() {
+        return 1;
+    }
+    @Override protected int maxArgCount() {
+        return 2;
+    }
 
     private static final String COMMAND_NAME = "show-weekly-calories";
-    private static final int ARGUMENTS_COUNT = 1;
 
     private final FoodDiary foodDiary;
 
@@ -22,11 +28,9 @@ public final class ShowWeeklyCaloriesCommand implements ExecutableCommand {
     }
 
     @Override
-    public String execute(List<String> arguments) throws InvalidCommandException {
-        validateArgumentsCount(arguments, ARGUMENTS_COUNT);
-
-        int weekNumber = getWeekNumber(arguments.get(0));
-        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(weekNumber);
+    public String doExecute(List<String> arguments) throws InvalidCommandException {
+        WeekYear weekYear = parseWeekYear(arguments);
+        WeeklyNutritionSummary summary = foodDiary.getWeeklyNutritionSummary(weekYear.weekNumber(), weekYear.year());
 
         return buildReport(summary);
     }

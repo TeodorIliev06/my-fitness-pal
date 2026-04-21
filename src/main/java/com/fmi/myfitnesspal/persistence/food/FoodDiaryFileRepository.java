@@ -64,8 +64,8 @@ public final class FoodDiaryFileRepository implements FoodDiary {
     }
 
     @Override
-    public List<Food> getFoodsByWeekNumber(int weekNumber) {
-        return foodDiary.getFoodsByWeekNumber(weekNumber);
+    public List<Food> getFoodsByWeekNumber(int weekNumber, int year) {
+        return foodDiary.getFoodsByWeekNumber(weekNumber, year);
     }
 
     @Override
@@ -79,8 +79,8 @@ public final class FoodDiaryFileRepository implements FoodDiary {
     }
 
     @Override
-    public WeeklyNutritionSummary getWeeklyNutritionSummary(int weekNumber) {
-        return foodDiary.getWeeklyNutritionSummary(weekNumber);
+    public WeeklyNutritionSummary getWeeklyNutritionSummary(int weekNumber, int year) {
+        return foodDiary.getWeeklyNutritionSummary(weekNumber, year);
     }
 
     @Override

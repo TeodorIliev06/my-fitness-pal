@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.DATE_FORMATTER;
+import static com.fmi.myfitnesspal.utility.DateHelper.DATE_FORMATTER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
