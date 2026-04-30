@@ -40,7 +40,7 @@ public final class FoodDiaryFactoryTest {
     void testCreateWithoutPersistenceReturnsInMemoryFoodDiary() {
         FoodDiaryFactory factory = buildFactory(false);
 
-        FoodDiary createdDiary = factory.create();
+        FoodDiary createdDiary = factory.createIn(tempDirectory);
 
         assertInstanceOf(InMemoryFoodDiary.class, createdDiary,
                 "create should return a plain InMemoryFoodDiary when file persistence is disabled");
@@ -50,7 +50,7 @@ public final class FoodDiaryFactoryTest {
     void testCreateWithoutPersistenceDoesNotCallJsonConverter() {
         FoodDiaryFactory factory = buildFactory(false);
 
-        factory.create();
+        factory.createIn(tempDirectory);
 
         verifyNoInteractions(jsonConverter);
     }
@@ -59,7 +59,7 @@ public final class FoodDiaryFactoryTest {
     void testCreateWithPersistenceReturnsFoodDiaryFileRepository() {
         FoodDiaryFactory factory = buildFactory(true);
 
-        FoodDiary createdDiary = factory.create();
+        FoodDiary createdDiary = factory.createIn(tempDirectory);
 
         assertInstanceOf(FoodDiaryFileRepository.class, createdDiary,
                 "create should return a FoodDiaryFileRepository when file persistence is enabled");
@@ -69,7 +69,7 @@ public final class FoodDiaryFactoryTest {
     void testCreateWithPersistenceAndNonExistingFileStartsWithEmptyFoodEntries() {
         FoodDiaryFactory factory = buildFactory(true);
 
-        FoodDiary createdDiary = factory.create();
+        FoodDiary createdDiary = factory.createIn(tempDirectory);
 
         assertTrue(createdDiary.getAllDailyFoodEntries().isEmpty(),
                 "getAllDailyFoodEntries should be empty when no persisted file exists yet");
@@ -79,7 +79,7 @@ public final class FoodDiaryFactoryTest {
     void testCreateWithPersistenceAndNonExistingFileStartsWithEmptyMealEntries() {
         FoodDiaryFactory factory = buildFactory(true);
 
-        FoodDiary createdDiary = factory.create();
+        FoodDiary createdDiary = factory.createIn(tempDirectory);
 
         assertTrue(createdDiary.getAllDailyMealEntries().isEmpty(),
                 "getAllDailyMealEntries should be empty when no persisted file exists yet");
@@ -89,7 +89,7 @@ public final class FoodDiaryFactoryTest {
     void testCreateWithPersistenceCorrectlyTracksAddedFood() {
         when(jsonConverter.serializeSingle(any())).thenReturn("{}");
         FoodDiaryFactory factory = buildFactory(true);
-        FoodDiary createdDiary = factory.create();
+        FoodDiary createdDiary = factory.createIn(tempDirectory);
         Food apple = Food.builder(new FoodId("none", "apple"), 2.0, 180.0).build();
 
         createdDiary.addFood(CONSUMPTION_DATE, EATING_TIME, apple, 1.0);
@@ -103,12 +103,7 @@ public final class FoodDiaryFactoryTest {
         return new FoodDiaryFactory(
                 persistToFile,
                 jsonConverter,
-                new FoodDiaryDtoMapper(new FoodDtoMapper()),
-                getDiaryFilePath()
+                new FoodDiaryDtoMapper(new FoodDtoMapper())
         );
-    }
-
-    private Path getDiaryFilePath() {
-        return tempDirectory.resolve("food_diary.json");
     }
 }
