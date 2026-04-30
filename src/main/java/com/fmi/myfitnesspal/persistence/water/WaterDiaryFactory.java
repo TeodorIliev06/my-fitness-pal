@@ -10,25 +10,26 @@ import java.nio.file.Path;
 
 public final class WaterDiaryFactory {
 
+    private static final String WATER_DIARY_FILE_NAME = "water_diary.json";
+
     private final boolean persistToFile;
     private final JsonConverter jsonConverter;
     private final DailyWaterEntryDtoMapper waterDtoMapper;
-    private final Path waterDiaryFilePath;
 
     public WaterDiaryFactory(boolean persistToFile, JsonConverter jsonConverter,
-                             DailyWaterEntryDtoMapper waterDtoMapper, Path waterDiaryFilePath) {
+                             DailyWaterEntryDtoMapper waterDtoMapper) {
         this.persistToFile = persistToFile;
         this.jsonConverter = jsonConverter;
         this.waterDtoMapper = waterDtoMapper;
-        this.waterDiaryFilePath = waterDiaryFilePath;
     }
 
-    public WaterDiary create() {
+    public WaterDiary createIn(Path userDataDirectory) {
         InMemoryWaterDiary inMemoryWaterDiary = new InMemoryWaterDiary();
         if (!persistToFile) {
             return inMemoryWaterDiary;
         }
 
+        Path waterDiaryFilePath = userDataDirectory.resolve(WATER_DIARY_FILE_NAME);
         PersistenceStore<DailyWaterDto> persistenceStore =
                 new JsonPersistence<>(jsonConverter, waterDiaryFilePath, DailyWaterDto.class);
 

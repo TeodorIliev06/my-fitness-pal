@@ -35,7 +35,7 @@ public final class WaterDiaryFactoryTest {
     void testCreateWithoutPersistenceReturnInMemoryWaterDiary() {
         WaterDiaryFactory factory = buildFactory(false);
 
-        WaterDiary createdDiary = factory.create();
+        WaterDiary createdDiary = factory.createIn(tempDirectory);
 
         assertInstanceOf(InMemoryWaterDiary.class, createdDiary,
                 "create should return a plain InMemoryWaterDiary when file persistence is disabled");
@@ -45,7 +45,7 @@ public final class WaterDiaryFactoryTest {
     void testCreateWithoutPersistenceDoesNotCallJsonConverter() {
         WaterDiaryFactory factory = buildFactory(false);
 
-        factory.create();
+        factory.createIn(tempDirectory);
 
         verifyNoInteractions(jsonConverter);
     }
@@ -54,7 +54,7 @@ public final class WaterDiaryFactoryTest {
     void testCreateWithPersistenceReturnsWaterFileRepository() {
         WaterDiaryFactory factory = buildFactory(true);
 
-        WaterDiary createdDiary = factory.create();
+        WaterDiary createdDiary = factory.createIn(tempDirectory);
 
         assertInstanceOf(WaterFileRepository.class, createdDiary,
                 "create should return a WaterFileRepository when file persistence is enabled");
@@ -64,7 +64,7 @@ public final class WaterDiaryFactoryTest {
     void testCreateWithPersistenceAndNonexistingFileReturnsEmptyDiary() {
         WaterDiaryFactory factory = buildFactory(true);
 
-        WaterDiary createdDiary = factory.create();
+        WaterDiary createdDiary = factory.createIn(tempDirectory);
 
         assertTrue(createdDiary.getAllDailyWaterEntries().isEmpty(),
                 "The diary should be empty when no persisted file exists yet");
@@ -74,7 +74,7 @@ public final class WaterDiaryFactoryTest {
     void testCreateWithPersistenceAndNonexistingFileReturnsNoDailyWater() {
         WaterDiaryFactory factory = buildFactory(true);
 
-        WaterDiary createdDiary = factory.create();
+        WaterDiary createdDiary = factory.createIn(tempDirectory);
 
         assertEquals(0, createdDiary.getDailyWater(CONSUMPTION_DATE),
                 "getDailyWater should return 0 for any date when the diary starts empty");
@@ -84,9 +84,9 @@ public final class WaterDiaryFactoryTest {
     void testCreateWithPersistenceReturnsCorrectDiary() {
         when(jsonConverter.serialize(any())).thenReturn("[]");
         WaterDiaryFactory factory = new WaterDiaryFactory(
-                true, jsonConverter, new DailyWaterEntryDtoMapper(), getWaterFilePath()
+                true, jsonConverter, new DailyWaterEntryDtoMapper()
         );
-        WaterDiary createdDiary = factory.create();
+        WaterDiary createdDiary = factory.createIn(tempDirectory);
 
         verifyNoInteractions(jsonConverter);
         createdDiary.addWater(CONSUMPTION_DATE, Portion.P_500);
@@ -99,12 +99,7 @@ public final class WaterDiaryFactoryTest {
         return new WaterDiaryFactory(
                 persistToFile,
                 jsonConverter,
-                new DailyWaterEntryDtoMapper(),
-                getWaterFilePath()
+                new DailyWaterEntryDtoMapper()
         );
-    }
-
-    private Path getWaterFilePath() {
-        return tempDirectory.resolve("water.json");
     }
 }
