@@ -29,7 +29,7 @@ import com.fmi.myfitnesspal.command.food.ShowDailyNutrientsCommand;
 import com.fmi.myfitnesspal.command.food.ShowWeeklyNutrientsCommand;
 import com.fmi.myfitnesspal.command.calorie.CheckCalorieGoalCommand;
 import com.fmi.myfitnesspal.command.calorie.SetCalorieGoalCommand;
-import com.fmi.myfitnesspal.command.user.RegisterNewUserCommand;
+import com.fmi.myfitnesspal.command.user.CreateUserCommand;
 import com.fmi.myfitnesspal.command.user.SwitchUserCommand;
 import com.fmi.myfitnesspal.command.utility.NutritionSliceMapper;
 import com.fmi.myfitnesspal.command.water.RemoveWaterCommand;
@@ -48,13 +48,22 @@ import com.fmi.myfitnesspal.persistence.food.FoodDiaryDtoMapper;
 import com.fmi.myfitnesspal.persistence.food.FoodPoolFactory;
 import com.fmi.myfitnesspal.persistence.food.FoodDtoMapper;
 import com.fmi.myfitnesspal.persistence.food.UserAwareFoodDiary;
-import com.fmi.myfitnesspal.persistence.user.UserRegistry;
+import com.fmi.myfitnesspal.persistence.user.UserPoolFactory;
+import com.fmi.myfitnesspal.persistence.user.UserProfileDtoMapper;
 import com.fmi.myfitnesspal.persistence.water.WaterDiaryFactory;
 import com.fmi.myfitnesspal.persistence.water.DailyWaterEntryDtoMapper;
 import com.fmi.myfitnesspal.persistence.water.UserAwareWaterDiary;
-import com.fmi.myfitnesspal.registration_cli.UserRegistration;
-import com.fmi.myfitnesspal.user.UserHolder;
 import com.fmi.myfitnesspal.user.UserSession;
+import com.fmi.myfitnesspal.user.UserProfile;
+import com.fmi.myfitnesspal.user.UserId;
+import com.fmi.myfitnesspal.user.User;
+import com.fmi.myfitnesspal.user.UserPool;
+import com.fmi.myfitnesspal.user.country.Country;
+import com.fmi.myfitnesspal.user.height.Height;
+import com.fmi.myfitnesspal.user.height.LengthMeasurementUnit;
+import com.fmi.myfitnesspal.user.sex.Sex;
+import com.fmi.myfitnesspal.user.weight.Weight;
+import com.fmi.myfitnesspal.user.weight.WeightMeasurementUnit;
 import com.fmi.myfitnesspal.water.WaterDiary;
 import com.fmi.myfitnesspal.water.InMemoryWaterDiary;
 import com.fmi.myfitnesspal.command.water.AddWaterCommand;
@@ -76,14 +85,22 @@ import java.util.Scanner;
 public final class Main {
     private static final boolean SHOULD_STORE_FOOD_IN_FILE = true;
     private static final boolean SHOULD_STORE_WATER_IN_FILE = true;
+    private static final boolean SHOULD_STORE_USERS_IN_FILE = true;
+
+    private static final String GUEST_USERNAME = "Guest";
+    private static final int GUEST_HEIGHT_CM = 170;
+    private static final int GUEST_WEIGHT_KG = 70;
+    private static final int GUEST_AGE = 30;
+    private static final Sex GUEST_SEX = Sex.MALE;
+    private static final Country GUEST_COUNTRY = Country.BULGARIA;
 
     private static final Path FOOD_POOL_FILE_PATH = Path.of("food_pool.json");
+    private static final Path USERS_ROOT_PATH = Path.of("users");
 
     private Main() {
     }
 
     public static void main(String[] args) {
-        UserHolder userHolder = new UserHolder();
         CalorieGoalHolder calorieGoalHolder = new CalorieGoalHolder();
         MealPool mealPool = new MealPool();
         ExercisePool exercisePool = new InMemoryExercisePool();
@@ -92,7 +109,6 @@ public final class Main {
         CommandParser parser = new CommandParser();
         CommandExecutor executor = new CommandExecutor(registry);
         Scanner scanner = new Scanner(System.in);
-        UserRegistration userRegistration = new UserRegistration(scanner);
         NutritionSliceMapper sliceMapper = new NutritionSliceMapper();
 
         BarChartDisplayer barChartDisplayer = new BarChartWindow();
@@ -125,33 +141,53 @@ public final class Main {
                 foodDiaryDtoMapper
         );
 
-        UserRegistry userRegistry = new UserRegistry();
+        UserProfileDtoMapper userProfileDtoMapper = new UserProfileDtoMapper();
+        UserPool userPool = new UserPoolFactory(
+                SHOULD_STORE_USERS_IN_FILE,
+                jsonConverter,
+                userProfileDtoMapper,
+                USERS_ROOT_PATH
+        ).create();
+
         UserAwareWaterDiary userAwareWaterDiary = new UserAwareWaterDiary(
-                waterDiaryFactory, userRegistry, new InMemoryWaterDiary()
+                waterDiaryFactory, USERS_ROOT_PATH, new InMemoryWaterDiary()
         );
         UserAwareFoodDiary userAwareFoodDiary = new UserAwareFoodDiary(
-                foodDiaryFactory, userRegistry, new InMemoryFoodDiary()
+                foodDiaryFactory, USERS_ROOT_PATH, new InMemoryFoodDiary()
         );
         UserSession userSession = new UserSession(List.of(userAwareFoodDiary, userAwareWaterDiary));
 
+        UserProfile guestProfile = createGuestProfile();
+        if (!userPool.contains(guestProfile.userId())) {
+            userPool.addUser(guestProfile);
+        }
+        userSession.switchTo(userPool.findById(guestProfile.userId()).orElseThrow());
+
         fillRegistry(registry, userAwareWaterDiary, foodPool, userAwareFoodDiary,
-                mealPool, exercisePool, exerciseDiary, userHolder,
-                scanner, userRegistration, sliceMapper, barChartDisplayer, pieChartDisplayer,
-                calorieGoalHolder, userRegistry, userSession);
+                mealPool, exercisePool, exerciseDiary,
+                scanner, sliceMapper, barChartDisplayer, pieChartDisplayer,
+                calorieGoalHolder, userSession, userPool);
 
         Menu menu = new Menu(registry, scanner);
         menu.start();
     }
 
+    private static UserProfile createGuestProfile() {
+        UserId guestId = new UserId(GUEST_USERNAME);
+        Height height = new Height(GUEST_HEIGHT_CM, LengthMeasurementUnit.CENTIMETER);
+        Weight weight = new Weight(GUEST_WEIGHT_KG, WeightMeasurementUnit.KILOGRAM);
+        User guestUser = new User(height, weight, GUEST_AGE, GUEST_SEX, GUEST_COUNTRY);
+        return new UserProfile(guestId, guestUser);
+    }
+
     private static void fillRegistry(ExecutableCommandRegistry registry, WaterDiary waterDiary,
                                      FoodPool foodPool, FoodDiary foodDiary,
                                      MealPool mealPool, ExercisePool exercisePool, ExerciseDiary exerciseDiary,
-                                     UserHolder userHolder,
-                                     Scanner scanner, UserRegistration userRegistration,
+                                     Scanner scanner,
                                      NutritionSliceMapper sliceMapper,
                                      BarChartDisplayer barChartDisplayer, PieChartDisplayer pieChartDisplayer,
                                      CalorieGoalHolder calorieGoalHolder,
-                                     UserRegistry userRegistry, UserSession userSession) {
+                                     UserSession userSession, UserPool userPool) {
         registry.addCommand(new AddWaterCommand(waterDiary));
         registry.addCommand(new AddWaterPortionCommand(waterDiary));
         registry.addCommand(new GetWaterCommand(waterDiary));
@@ -167,8 +203,8 @@ public final class Main {
         registry.addCommand(new RemoveMealCommand(foodDiary));
         registry.addCommand(new ShowWeeklyCaloriesCommand(foodDiary));
         registry.addCommand(new HelpCommand(registry));
-        registry.addCommand(new RegisterNewUserCommand(scanner, userHolder, userRegistration));
-        registry.addCommand(new SwitchUserCommand(userRegistry, userSession, userRegistration));
+        registry.addCommand(new CreateUserCommand(userPool));
+        registry.addCommand(new SwitchUserCommand(userPool, userSession));
         registry.addCommand(new CreateCardioExerciseCommand(exercisePool));
         registry.addCommand(new CreateStrengthExerciseCommand(exercisePool));
         registry.addCommand(new CreateWorkoutCommand(exercisePool));

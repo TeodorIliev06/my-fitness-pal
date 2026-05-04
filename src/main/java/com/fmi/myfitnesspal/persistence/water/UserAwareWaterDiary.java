@@ -1,35 +1,34 @@
 package com.fmi.myfitnesspal.persistence.water;
 
 import com.fmi.myfitnesspal.exception.WaterNotLoggedException;
-import com.fmi.myfitnesspal.persistence.user.UserRegistry;
 import com.fmi.myfitnesspal.user.UserAware;
 import com.fmi.myfitnesspal.user.UserProfile;
 import com.fmi.myfitnesspal.water.DailyWaterEntry;
 import com.fmi.myfitnesspal.water.Portion;
 import com.fmi.myfitnesspal.water.WaterDiary;
 
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 
 public final class UserAwareWaterDiary implements WaterDiary, UserAware {
 
     private final WaterDiaryFactory waterDiaryFactory;
-    private final UserRegistry userRegistry;
+    private final Path usersRootPath;
     private WaterDiary activeDiary;
 
     public UserAwareWaterDiary(WaterDiaryFactory waterDiaryFactory,
-                               UserRegistry userRegistry,
+                               Path usersRootPath,
                                WaterDiary guestDiary) {
         this.waterDiaryFactory = waterDiaryFactory;
-        this.userRegistry = userRegistry;
+        this.usersRootPath = usersRootPath;
         this.activeDiary = guestDiary;
     }
 
     @Override
     public void onUserSwitched(UserProfile activeProfile) {
-        activeDiary = waterDiaryFactory.createIn(
-                userRegistry.resolveUserDataPath(activeProfile.username())
-        );
+        Path userDataPath = usersRootPath.resolve(activeProfile.userId().username());
+        activeDiary = waterDiaryFactory.createIn(userDataPath);
     }
 
     @Override
