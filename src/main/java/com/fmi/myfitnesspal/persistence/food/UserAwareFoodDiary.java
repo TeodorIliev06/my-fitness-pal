@@ -11,32 +11,31 @@ import com.fmi.myfitnesspal.food.FoodId;
 import com.fmi.myfitnesspal.food.Meal;
 import com.fmi.myfitnesspal.food.MealId;
 import com.fmi.myfitnesspal.food.WeeklyNutritionSummary;
-import com.fmi.myfitnesspal.persistence.user.UserRegistry;
 import com.fmi.myfitnesspal.user.UserAware;
 import com.fmi.myfitnesspal.user.UserProfile;
 
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 
 public final class UserAwareFoodDiary implements FoodDiary, UserAware {
 
     private final FoodDiaryFactory foodDiaryFactory;
-    private final UserRegistry userRegistry;
+    private final Path usersRootPath;
     private FoodDiary activeDiary;
 
     public UserAwareFoodDiary(FoodDiaryFactory foodDiaryFactory,
-                              UserRegistry userRegistry,
+                              Path usersRootPath,
                               FoodDiary guestDiary) {
         this.foodDiaryFactory = foodDiaryFactory;
-        this.userRegistry = userRegistry;
+        this.usersRootPath = usersRootPath;
         this.activeDiary = guestDiary;
     }
 
     @Override
     public void onUserSwitched(UserProfile activeProfile) {
-        activeDiary = foodDiaryFactory.createIn(
-                userRegistry.resolveUserDataPath(activeProfile.username())
-        );
+        Path userDataPath = usersRootPath.resolve(activeProfile.userId().username());
+        activeDiary = foodDiaryFactory.createIn(userDataPath);
     }
 
     @Override
