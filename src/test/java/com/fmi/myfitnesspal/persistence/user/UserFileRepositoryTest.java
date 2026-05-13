@@ -1,5 +1,8 @@
 package com.fmi.myfitnesspal.persistence.user;
 
+import com.fmi.myfitnesspal.persistence.PersistenceStoreFactory;
+import com.fmi.myfitnesspal.persistence.file.ObjectPersistenceStore;
+import com.fmi.myfitnesspal.persistence.file.PersistenceStore;
 import com.fmi.myfitnesspal.user.User;
 import com.fmi.myfitnesspal.user.UserId;
 import com.fmi.myfitnesspal.user.UserPool;
@@ -10,8 +13,6 @@ import com.fmi.myfitnesspal.user.height.LengthMeasurementUnit;
 import com.fmi.myfitnesspal.user.sex.Sex;
 import com.fmi.myfitnesspal.user.weight.Weight;
 import com.fmi.myfitnesspal.user.weight.WeightMeasurementUnit;
-import com.fmi.myfitnesspal.persistence.file.PersistenceStore;
-import org.external.json.JsonConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,8 +20,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -36,8 +35,8 @@ import static org.mockito.Mockito.when;
 public final class UserFileRepositoryTest {
 
     private static final UserId USER_ID = new UserId("Ivan");
-    private static final UserProfile USER_PROFILE = createUserProfile();
-    private static final UserProfileDto USER_PROFILE_DTO = createUserProfileDto();
+    private static final UserProfile USER_PROFILE = buildProfileFor(USER_ID);
+    private static final UserProfileDto USER_PROFILE_DTO = buildDtoFor(USER_ID);
 
     @TempDir
     Path usersRootPath;
@@ -49,32 +48,34 @@ public final class UserFileRepositoryTest {
     @Mock
     private PersistenceStore<String> usernamesStore;
     @Mock
-    private JsonConverter jsonConverter;
+    private PersistenceStoreFactory storeFactory;
+    @Mock
+    private ObjectPersistenceStore<UserProfileDto> profileStore;
 
     private UserFileRepository userFileRepository;
 
     @BeforeEach
     void setUp() {
         userFileRepository = new UserFileRepository(
-                userPool, userProfileDtoMapper, usernamesStore, jsonConverter, usersRootPath);
+                userPool, userProfileDtoMapper, usernamesStore, storeFactory, usersRootPath);
     }
 
     @Test
-    void testLoadInitialStateWithEmptyListAddsNothingToPool() {
+    void testLoadInitialStateWithEmptyUsernameListAddsNothingToPool() {
         when(usernamesStore.load()).thenReturn(List.of());
 
         userFileRepository.loadInitialState();
 
-        verify(usernamesStore).load();
+        verifyNoInteractions(storeFactory);
         verifyNoInteractions(userProfileDtoMapper);
         verifyNoInteractions(userPool);
     }
 
     @Test
-    void testLoadInitialStateWithSingleUsernameMapsAndAddsToPool() throws IOException {
-        createProfileFileFor("Ivan", "{}");
+    void testLoadInitialStateWithSingleUsernameLoadsAndAddsProfileToPool() {
         when(usernamesStore.load()).thenReturn(List.of("Ivan"));
-        when(jsonConverter.deserializeSingle(any(), eq(UserProfileDto.class))).thenReturn(USER_PROFILE_DTO);
+        when(storeFactory.createObjectStore(any(), eq(UserProfileDto.class))).thenReturn(profileStore);
+        when(profileStore.load()).thenReturn(Optional.of(USER_PROFILE_DTO));
         when(userProfileDtoMapper.toEntity(USER_PROFILE_DTO)).thenReturn(USER_PROFILE);
 
         userFileRepository.loadInitialState();
@@ -84,17 +85,16 @@ public final class UserFileRepositoryTest {
     }
 
     @Test
-    void testLoadInitialStateWithMultipleUsernamesMapsAndAddsEachToPool() throws IOException {
+    void testLoadInitialStateWithMultipleUsernamesLoadsAndAddsEachProfileToPool() {
         UserId petarId = new UserId("Petar");
         UserProfileDto petarDto = buildDtoFor(petarId);
         UserProfile petarProfile = buildProfileFor(petarId);
 
-        createProfileFileFor("Ivan", "{}");
-        createProfileFileFor("Petar", "{}");
         when(usernamesStore.load()).thenReturn(List.of("Ivan", "Petar"));
-        when(jsonConverter.deserializeSingle(any(), eq(UserProfileDto.class)))
-                .thenReturn(USER_PROFILE_DTO)
-                .thenReturn(petarDto);
+        when(storeFactory.createObjectStore(any(), eq(UserProfileDto.class))).thenReturn(profileStore);
+        when(profileStore.load())
+                .thenReturn(Optional.of(USER_PROFILE_DTO))
+                .thenReturn(Optional.of(petarDto));
         when(userProfileDtoMapper.toEntity(USER_PROFILE_DTO)).thenReturn(USER_PROFILE);
         when(userProfileDtoMapper.toEntity(petarDto)).thenReturn(petarProfile);
 
@@ -105,26 +105,37 @@ public final class UserFileRepositoryTest {
     }
 
     @Test
-    void testAddUserDelegatesToInnerPoolAndPersistsCurrentState() {
-        when(jsonConverter.serializeSingle(USER_PROFILE_DTO)).thenReturn("{}");
+    void testAddUserDelegatesToInnerPool() {
+        when(storeFactory.createObjectStore(any(), eq(UserProfileDto.class))).thenReturn(profileStore);
         when(userProfileDtoMapper.toDto(USER_PROFILE)).thenReturn(USER_PROFILE_DTO);
         when(userPool.getAllUserProfiles()).thenReturn(List.of(USER_PROFILE));
 
         userFileRepository.addUser(USER_PROFILE);
 
         verify(userPool).addUser(USER_PROFILE);
-        verify(usernamesStore).save(List.of("Ivan"));
     }
 
     @Test
-    void testAddUserPersistsProfileDtoForTheAddedUser() {
-        when(jsonConverter.serializeSingle(USER_PROFILE_DTO)).thenReturn("{}");
+    void testAddUserMapsAndPersistsProfileDtoToProfileStore() {
+        when(storeFactory.createObjectStore(any(), eq(UserProfileDto.class))).thenReturn(profileStore);
         when(userProfileDtoMapper.toDto(USER_PROFILE)).thenReturn(USER_PROFILE_DTO);
         when(userPool.getAllUserProfiles()).thenReturn(List.of(USER_PROFILE));
 
         userFileRepository.addUser(USER_PROFILE);
 
         verify(userProfileDtoMapper).toDto(USER_PROFILE);
+        verify(profileStore).save(USER_PROFILE_DTO);
+    }
+
+    @Test
+    void testAddUserPersistsCurrentUsernameListToUsernamesStore() {
+        when(storeFactory.createObjectStore(any(), eq(UserProfileDto.class))).thenReturn(profileStore);
+        when(userProfileDtoMapper.toDto(USER_PROFILE)).thenReturn(USER_PROFILE_DTO);
+        when(userPool.getAllUserProfiles()).thenReturn(List.of(USER_PROFILE));
+
+        userFileRepository.addUser(USER_PROFILE);
+
+        verify(usernamesStore).save(List.of("Ivan"));
     }
 
     @Test
@@ -150,29 +161,15 @@ public final class UserFileRepositoryTest {
     }
 
     @Test
-    void testGetAllUserProfilesDelegatesToInnerPoolAndReturnsAllResults() {
+    void testGetAllUserProfilesDelegatesToInnerPool() {
         List<UserProfile> expectedProfiles = List.of(USER_PROFILE);
         when(userPool.getAllUserProfiles()).thenReturn(expectedProfiles);
 
-        List<UserProfile> actualProfiles = userFileRepository.getAllUserProfiles();
+        List<UserProfile> resultProfiles = userFileRepository.getAllUserProfiles();
 
-        assertEquals(expectedProfiles, actualProfiles,
+        assertEquals(expectedProfiles, resultProfiles,
                 "getAllUserProfiles should return the list delegated from the inner UserPool");
         verify(userPool).getAllUserProfiles();
-    }
-
-    private void createProfileFileFor(String username, String content) throws IOException {
-        Path userDir = usersRootPath.resolve(username);
-        Files.createDirectories(userDir);
-        Files.writeString(userDir.resolve("profile.json"), content);
-    }
-
-    private static UserProfile createUserProfile() {
-        return buildProfileFor(USER_ID);
-    }
-
-    private static UserProfileDto createUserProfileDto() {
-        return buildDtoFor(USER_ID);
     }
 
     private static UserProfile buildProfileFor(UserId userId) {

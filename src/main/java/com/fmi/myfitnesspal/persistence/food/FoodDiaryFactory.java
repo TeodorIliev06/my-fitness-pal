@@ -2,39 +2,38 @@ package com.fmi.myfitnesspal.persistence.food;
 
 import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.InMemoryFoodDiary;
-import com.fmi.myfitnesspal.persistence.file.JsonObjectPersistence;
+import com.fmi.myfitnesspal.persistence.AbstractRepositoryFactory;
+import com.fmi.myfitnesspal.persistence.PersistenceStoreFactory;
 import com.fmi.myfitnesspal.persistence.file.ObjectPersistenceStore;
-import org.external.json.JsonConverter;
 
 import java.nio.file.Path;
 
-public final class FoodDiaryFactory {
+public final class FoodDiaryFactory extends AbstractRepositoryFactory {
 
     private static final String FOOD_DIARY_FILE_NAME = "food_diary.json";
 
-    private final boolean persistToFile;
-    private final JsonConverter jsonConverter;
     private final FoodDiaryDtoMapper foodDiaryDtoMapper;
 
-    public FoodDiaryFactory(boolean persistToFile, JsonConverter jsonConverter,
+    public FoodDiaryFactory(boolean persistToFile, PersistenceStoreFactory storeFactory,
                             FoodDiaryDtoMapper foodDiaryDtoMapper) {
-        this.persistToFile = persistToFile;
-        this.jsonConverter = jsonConverter;
+        super(persistToFile, storeFactory);
         this.foodDiaryDtoMapper = foodDiaryDtoMapper;
     }
 
     public FoodDiary createIn(Path userDataDirectory) {
-        InMemoryFoodDiary inMemoryFoodDiary = new InMemoryFoodDiary();
-        if (!persistToFile) {
-            return inMemoryFoodDiary;
-        }
+        return resolveRepository(
+                InMemoryFoodDiary::new,
+                () -> buildPersistentFoodDiaryIn(userDataDirectory)
+        );
+    }
 
+    private FoodDiaryFileRepository buildPersistentFoodDiaryIn(Path userDataDirectory) {
         Path foodDiaryFilePath = userDataDirectory.resolve(FOOD_DIARY_FILE_NAME);
         ObjectPersistenceStore<FoodDiaryDto> persistenceStore =
-                new JsonObjectPersistence<>(jsonConverter, foodDiaryFilePath, FoodDiaryDto.class);
+                storeFactory.createObjectStore(foodDiaryFilePath, FoodDiaryDto.class);
 
         FoodDiaryFileRepository repository =
-                new FoodDiaryFileRepository(inMemoryFoodDiary, foodDiaryDtoMapper, persistenceStore);
+                new FoodDiaryFileRepository(new InMemoryFoodDiary(), foodDiaryDtoMapper, persistenceStore);
         repository.loadInitialState();
         return repository;
     }

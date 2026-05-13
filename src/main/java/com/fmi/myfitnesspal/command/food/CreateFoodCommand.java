@@ -10,9 +10,9 @@ import com.fmi.myfitnesspal.food.FoodPool;
 import java.util.List;
 import java.util.Optional;
 
+import static com.fmi.myfitnesspal.utility.NumberParser.parseDouble;
+import static com.fmi.myfitnesspal.utility.NumberParser.parseDoubleOptional;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDoubleOptional;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDouble;
 
 public final class CreateFoodCommand implements ExecutableCommand {
     private static final String COMMAND_NAME = "create-food";

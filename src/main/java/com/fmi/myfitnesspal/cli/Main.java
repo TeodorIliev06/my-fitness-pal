@@ -43,6 +43,8 @@ import com.fmi.myfitnesspal.food.FoodPool;
 import com.fmi.myfitnesspal.food.InMemoryFoodDiary;
 import com.fmi.myfitnesspal.food.MealPool;
 import com.fmi.myfitnesspal.calorie.CalorieGoalHolder;
+import com.fmi.myfitnesspal.persistence.file.JsonPersistenceStoreFactory;
+import com.fmi.myfitnesspal.persistence.PersistenceStoreFactory;
 import com.fmi.myfitnesspal.persistence.food.FoodDiaryFactory;
 import com.fmi.myfitnesspal.persistence.food.FoodDiaryDtoMapper;
 import com.fmi.myfitnesspal.persistence.food.FoodPoolFactory;
@@ -53,17 +55,10 @@ import com.fmi.myfitnesspal.persistence.user.UserProfileDtoMapper;
 import com.fmi.myfitnesspal.persistence.water.WaterDiaryFactory;
 import com.fmi.myfitnesspal.persistence.water.DailyWaterEntryDtoMapper;
 import com.fmi.myfitnesspal.persistence.water.UserAwareWaterDiary;
-import com.fmi.myfitnesspal.user.UserSession;
+import com.fmi.myfitnesspal.user.GuestUserProfileFactory;
 import com.fmi.myfitnesspal.user.UserProfile;
-import com.fmi.myfitnesspal.user.UserId;
-import com.fmi.myfitnesspal.user.User;
+import com.fmi.myfitnesspal.user.UserSession;
 import com.fmi.myfitnesspal.user.UserPool;
-import com.fmi.myfitnesspal.user.country.Country;
-import com.fmi.myfitnesspal.user.height.Height;
-import com.fmi.myfitnesspal.user.height.LengthMeasurementUnit;
-import com.fmi.myfitnesspal.user.sex.Sex;
-import com.fmi.myfitnesspal.user.weight.Weight;
-import com.fmi.myfitnesspal.user.weight.WeightMeasurementUnit;
 import com.fmi.myfitnesspal.water.WaterDiary;
 import com.fmi.myfitnesspal.water.InMemoryWaterDiary;
 import com.fmi.myfitnesspal.command.water.AddWaterCommand;
@@ -86,13 +81,6 @@ public final class Main {
     private static final boolean SHOULD_STORE_FOOD_IN_FILE = true;
     private static final boolean SHOULD_STORE_WATER_IN_FILE = true;
     private static final boolean SHOULD_STORE_USERS_IN_FILE = true;
-
-    private static final String GUEST_USERNAME = "Guest";
-    private static final int GUEST_HEIGHT_CM = 170;
-    private static final int GUEST_WEIGHT_KG = 70;
-    private static final int GUEST_AGE = 30;
-    private static final Sex GUEST_SEX = Sex.MALE;
-    private static final Country GUEST_COUNTRY = Country.BULGARIA;
 
     private static final Path FOOD_POOL_FILE_PATH = Path.of("food_pool.json");
     private static final Path USERS_ROOT_PATH = Path.of("users");
@@ -118,11 +106,12 @@ public final class Main {
                 .enable(SerializationFeature.INDENT_OUTPUT)
                 .build();
         JsonConverter jsonConverter = new JsonConverter(jsonMapper);
+        PersistenceStoreFactory storeFactory = new JsonPersistenceStoreFactory(jsonConverter);
 
         FoodDtoMapper foodDtoMapper = new FoodDtoMapper();
         FoodPool foodPool = new FoodPoolFactory(
                 SHOULD_STORE_FOOD_IN_FILE,
-                jsonConverter,
+                storeFactory,
                 foodDtoMapper,
                 FOOD_POOL_FILE_PATH
         ).create();
@@ -130,21 +119,21 @@ public final class Main {
         DailyWaterEntryDtoMapper dailyWaterEntryDtoMapper = new DailyWaterEntryDtoMapper();
         WaterDiaryFactory waterDiaryFactory = new WaterDiaryFactory(
                 SHOULD_STORE_WATER_IN_FILE,
-                jsonConverter,
+                storeFactory,
                 dailyWaterEntryDtoMapper
         );
 
         FoodDiaryDtoMapper foodDiaryDtoMapper = new FoodDiaryDtoMapper(foodDtoMapper);
         FoodDiaryFactory foodDiaryFactory = new FoodDiaryFactory(
                 SHOULD_STORE_FOOD_IN_FILE,
-                jsonConverter,
+                storeFactory,
                 foodDiaryDtoMapper
         );
 
         UserProfileDtoMapper userProfileDtoMapper = new UserProfileDtoMapper();
         UserPool userPool = new UserPoolFactory(
                 SHOULD_STORE_USERS_IN_FILE,
-                jsonConverter,
+                storeFactory,
                 userProfileDtoMapper,
                 USERS_ROOT_PATH
         ).create();
@@ -157,7 +146,7 @@ public final class Main {
         );
         UserSession userSession = new UserSession(List.of(userAwareFoodDiary, userAwareWaterDiary));
 
-        UserProfile guestProfile = createGuestProfile();
+        UserProfile guestProfile = new GuestUserProfileFactory().create();
         if (!userPool.contains(guestProfile.userId())) {
             userPool.addUser(guestProfile);
         }
@@ -170,14 +159,6 @@ public final class Main {
 
         Menu menu = new Menu(registry, scanner);
         menu.start();
-    }
-
-    private static UserProfile createGuestProfile() {
-        UserId guestId = new UserId(GUEST_USERNAME);
-        Height height = new Height(GUEST_HEIGHT_CM, LengthMeasurementUnit.CENTIMETER);
-        Weight weight = new Weight(GUEST_WEIGHT_KG, WeightMeasurementUnit.KILOGRAM);
-        User guestUser = new User(height, weight, GUEST_AGE, GUEST_SEX, GUEST_COUNTRY);
-        return new UserProfile(guestId, guestUser);
     }
 
     private static void fillRegistry(ExecutableCommandRegistry registry, WaterDiary waterDiary,

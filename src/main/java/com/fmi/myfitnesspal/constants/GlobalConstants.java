@@ -28,6 +28,13 @@ public final class GlobalConstants {
     public static final String NOT_EXISTING_DATE_IN_EXERCISE_DIARY_MESSAGE
             = "There is no such date in your exercise diary!";
 
+    public static final String BLANK_USERNAME_MESSAGE = "Username must not be blank!";
+    public static final String NOT_EXISTING_LENGTH_UNIT_MESSAGE =
+            "The length measurement unit provided does not exist!";
+    public static final String NOT_EXISTING_WEIGHT_UNIT_MESSAGE =
+            "The weight measurement unit provided does not exist!";
+    public static final String NOT_EXISTING_COUNTRY_MESSAGE = "The country provided does not exist!";
+
     public static final String EMPTY_OPTIONAL_VALUE = "no";
     public static final String EXIT_COMMAND = "exit";
 }

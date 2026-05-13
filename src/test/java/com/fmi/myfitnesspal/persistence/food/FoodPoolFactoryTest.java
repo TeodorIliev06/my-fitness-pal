@@ -4,7 +4,8 @@ import com.fmi.myfitnesspal.food.Food;
 import com.fmi.myfitnesspal.food.FoodId;
 import com.fmi.myfitnesspal.food.FoodPool;
 import com.fmi.myfitnesspal.food.InMemoryFoodPool;
-import org.external.json.JsonConverter;
+import com.fmi.myfitnesspal.persistence.PersistenceStoreFactory;
+import com.fmi.myfitnesspal.persistence.file.PersistenceStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -12,11 +13,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,7 +31,9 @@ public final class FoodPoolFactoryTest {
     Path tempDirectory;
 
     @Mock
-    private JsonConverter jsonConverter;
+    private PersistenceStoreFactory storeFactoryMock;
+    @Mock
+    private PersistenceStore<FoodDto> foodStoreMock;
 
     @Test
     void testCreateWithoutPersistenceReturnsInMemoryFoodPool() {
@@ -46,11 +51,14 @@ public final class FoodPoolFactoryTest {
 
         factory.create();
 
-        verifyNoInteractions(jsonConverter);
+        verifyNoInteractions(storeFactoryMock);
     }
 
     @Test
     void testCreateWithPersistenceReturnsFoodFileRepository() {
+        when(storeFactoryMock.createListStore(any(), eq(FoodDto.class))).thenReturn(foodStoreMock);
+        when(foodStoreMock.load()).thenReturn(List.of());
+
         FoodPoolFactory factory = buildFactory(true);
 
         FoodPool createdPool = factory.create();
@@ -61,6 +69,9 @@ public final class FoodPoolFactoryTest {
 
     @Test
     void testCreateWithPersistenceAndNonExistingFileReturnsEmptyPool() {
+        when(storeFactoryMock.createListStore(any(), eq(FoodDto.class))).thenReturn(foodStoreMock);
+        when(foodStoreMock.load()).thenReturn(List.of());
+
         FoodPoolFactory factory = buildFactory(true);
 
         FoodPool createdPool = factory.create();
@@ -71,14 +82,13 @@ public final class FoodPoolFactoryTest {
 
     @Test
     void testCreateWithPersistenceReturnsCorrectPool() {
-        when(jsonConverter.serialize(any())).thenReturn("[]");
-        FoodPoolFactory factory = new FoodPoolFactory(
-                true, jsonConverter, new FoodDtoMapper(), getFoodFilePath()
-        );
+        when(storeFactoryMock.createListStore(any(), eq(FoodDto.class))).thenReturn(foodStoreMock);
+        when(foodStoreMock.load()).thenReturn(List.of());
+
+        FoodPoolFactory factory = buildFactory(true);
         FoodPool createdPool = factory.create();
         Food food = createApple();
 
-        verifyNoInteractions(jsonConverter);
         createdPool.addFood(food);
 
         Food retrieved = createdPool.getFood(new FoodId("Golden", "Apple"));
@@ -89,7 +99,7 @@ public final class FoodPoolFactoryTest {
     private FoodPoolFactory buildFactory(boolean persistToFile) {
         return new FoodPoolFactory(
                 persistToFile,
-                jsonConverter,
+                storeFactoryMock,
                 new FoodDtoMapper(),
                 getFoodFilePath()
         );

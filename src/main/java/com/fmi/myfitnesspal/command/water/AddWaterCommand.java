@@ -7,9 +7,9 @@ import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.fmi.myfitnesspal.utility.NumberParser.parseInteger;
 import static com.fmi.myfitnesspal.utility.DateHelper.parseDate;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseInt;
 
 public final class AddWaterCommand implements ExecutableCommand {
     private static final String COMMAND_NAME = "add-water";
@@ -26,7 +26,7 @@ public final class AddWaterCommand implements ExecutableCommand {
         validateArgumentsCount(arguments, ARGUMENTS_COUNT);
 
         LocalDate date = parseDate(arguments.get(0));
-        int quantity = parseInt(arguments.get(1));
+        int quantity = parseInteger(arguments.get(1));
 
         waterDiary.addWater(date, quantity);
         return "Water added successfully!";

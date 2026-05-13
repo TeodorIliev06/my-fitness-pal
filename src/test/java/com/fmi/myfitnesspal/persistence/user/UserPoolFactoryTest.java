@@ -1,5 +1,8 @@
 package com.fmi.myfitnesspal.persistence.user;
 
+import com.fmi.myfitnesspal.persistence.PersistenceStoreFactory;
+import com.fmi.myfitnesspal.persistence.file.ObjectPersistenceStore;
+import com.fmi.myfitnesspal.persistence.file.PersistenceStore;
 import com.fmi.myfitnesspal.user.InMemoryUserPool;
 import com.fmi.myfitnesspal.user.User;
 import com.fmi.myfitnesspal.user.UserId;
@@ -11,7 +14,6 @@ import com.fmi.myfitnesspal.user.height.LengthMeasurementUnit;
 import com.fmi.myfitnesspal.user.sex.Sex;
 import com.fmi.myfitnesspal.user.weight.Weight;
 import com.fmi.myfitnesspal.user.weight.WeightMeasurementUnit;
-import org.external.json.JsonConverter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -19,12 +21,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -35,7 +39,11 @@ public final class UserPoolFactoryTest {
     Path tempDirectory;
 
     @Mock
-    private JsonConverter jsonConverter;
+    private PersistenceStoreFactory storeFactoryMock;
+    @Mock
+    private PersistenceStore<String> usernameStoreMock;
+    @Mock
+    private ObjectPersistenceStore<UserProfileDto> profileStoreMock;
 
     @Test
     void testCreateWithoutPersistenceReturnsInMemoryUserPool() {
@@ -48,16 +56,19 @@ public final class UserPoolFactoryTest {
     }
 
     @Test
-    void testCreateWithoutPersistenceDoesNotCallJsonConverter() {
+    void testCreateWithoutPersistenceDoesNotCallPersistenceStoreFactory() {
         UserPoolFactory factory = buildFactory(false);
 
         factory.create();
 
-        verifyNoInteractions(jsonConverter);
+        verifyNoInteractions(storeFactoryMock);
     }
 
     @Test
     void testCreateWithPersistenceReturnsUserFileRepository() {
+        when(storeFactoryMock.createListStore(any(), eq(String.class))).thenReturn(usernameStoreMock);
+        when(usernameStoreMock.load()).thenReturn(List.of());
+
         UserPoolFactory factory = buildFactory(true);
 
         UserPool createdPool = factory.create();
@@ -68,6 +79,9 @@ public final class UserPoolFactoryTest {
 
     @Test
     void testCreateWithPersistenceAndNonExistingFileStartsWithEmptyPool() {
+        when(storeFactoryMock.createListStore(any(), eq(String.class))).thenReturn(usernameStoreMock);
+        when(usernameStoreMock.load()).thenReturn(List.of());
+
         UserPoolFactory factory = buildFactory(true);
 
         UserPool createdPool = factory.create();
@@ -78,8 +92,12 @@ public final class UserPoolFactoryTest {
 
     @Test
     void testCreateWithPersistenceReturnsCorrectPool() {
-        when(jsonConverter.serialize(any())).thenReturn("[]");
-        when(jsonConverter.serializeSingle(any())).thenReturn("{}");
+        // username list store is created on initialization
+        when(storeFactoryMock.createListStore(any(), eq(String.class))).thenReturn(usernameStoreMock);
+        when(usernameStoreMock.load()).thenReturn(List.of());
+
+        when(storeFactoryMock.createObjectStore(any(), eq(UserProfileDto.class))).thenReturn(profileStoreMock);
+
         UserPoolFactory factory = buildFactory(true);
         UserPool createdPool = factory.create();
         UserProfile ivanProfile = buildUserProfile();
@@ -96,7 +114,7 @@ public final class UserPoolFactoryTest {
     private UserPoolFactory buildFactory(boolean persistToFile) {
         return new UserPoolFactory(
                 persistToFile,
-                jsonConverter,
+                storeFactoryMock,
                 new UserProfileDtoMapper(),
                 tempDirectory
         );
