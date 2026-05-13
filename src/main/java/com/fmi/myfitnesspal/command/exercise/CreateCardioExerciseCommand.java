@@ -10,7 +10,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 import static com.fmi.myfitnesspal.utility.DateHelper.parseTime;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseInt;
+import static com.fmi.myfitnesspal.utility.NumberParser.parseInteger;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validatePositiveValues;
 
@@ -28,8 +28,8 @@ public final class CreateCardioExerciseCommand implements ExecutableCommand {
         validateArgumentsCount(arguments, ARGUMENTS_COUNT);
 
         String name = arguments.get(0);
-        int durationInMinutes = parseInt(arguments.get(1));
-        int burnedCalories = parseInt(arguments.get(2));
+        int durationInMinutes = parseInteger(arguments.get(1));
+        int burnedCalories = parseInteger(arguments.get(2));
         LocalTime startTime = parseTime(arguments.get(3));
 
         validatePositiveValues(durationInMinutes, burnedCalories);

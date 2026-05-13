@@ -2,39 +2,39 @@ package com.fmi.myfitnesspal.persistence.food;
 
 import com.fmi.myfitnesspal.food.FoodPool;
 import com.fmi.myfitnesspal.food.InMemoryFoodPool;
-import com.fmi.myfitnesspal.persistence.file.JsonPersistence;
+import com.fmi.myfitnesspal.persistence.AbstractRepositoryFactory;
+import com.fmi.myfitnesspal.persistence.PersistenceStoreFactory;
 import com.fmi.myfitnesspal.persistence.file.PersistenceStore;
-import org.external.json.JsonConverter;
 
 import java.nio.file.Path;
 
-public final class FoodPoolFactory {
+public final class FoodPoolFactory extends AbstractRepositoryFactory {
 
-    private final boolean persistToFile;
-    private final JsonConverter jsonConverter;
     private final FoodDtoMapper foodDtoMapper;
     private final Path foodPoolFilePath;
 
-    public FoodPoolFactory(boolean persistToFile, JsonConverter jsonConverter,
+    public FoodPoolFactory(boolean persistToFile, PersistenceStoreFactory storeFactory,
                            FoodDtoMapper foodDtoMapper, Path foodPoolFilePath) {
-        this.persistToFile = persistToFile;
-        this.jsonConverter = jsonConverter;
+        super(persistToFile, storeFactory);
         this.foodDtoMapper = foodDtoMapper;
         this.foodPoolFilePath = foodPoolFilePath;
     }
 
     public FoodPool create() {
-        InMemoryFoodPool inMemoryFoodPool = new InMemoryFoodPool();
-        if (!persistToFile) {
-            return inMemoryFoodPool;
-        }
+        return resolveRepository(
+                InMemoryFoodPool::new,
+                this::buildPersistentFoodPool
+        );
+    }
 
+    private FoodFileRepository buildPersistentFoodPool() {
         PersistenceStore<FoodDto> persistenceStore =
-                new JsonPersistence<>(jsonConverter, foodPoolFilePath, FoodDto.class);
+                storeFactory.createListStore(foodPoolFilePath, FoodDto.class);
 
         FoodFileRepository repository =
-                new FoodFileRepository(inMemoryFoodPool, foodDtoMapper, persistenceStore);
+                new FoodFileRepository(new InMemoryFoodPool(), foodDtoMapper, persistenceStore);
         repository.loadInitialState();
+
         return repository;
     }
 }

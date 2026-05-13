@@ -99,4 +99,44 @@ public final class CreateUserCommandTest {
         assertTrue(help.contains("create-user"),
                 "Help text should include the command name");
     }
+
+    @Test
+    void testExecuteThrowsWhenUsernameIsBlank() {
+        List<String> blankUsernameArguments =
+                List.of("   ", "170", "CENTIMETER", "70", "KILOGRAM", "22", "MALE", "BULGARIA");
+
+        assertThrows(InvalidCommandException.class,
+                () -> command.execute(blankUsernameArguments),
+                "Should throw when username argument is blank");
+    }
+
+    @Test
+    void testExecuteThrowsWhenHeightUnitIsInvalid() {
+        List<String> badHeightUnit =
+                List.of("Ivan", "170", "FURLONGS", "70", "KILOGRAM", "22", "MALE", "BULGARIA");
+
+        assertThrows(InvalidCommandException.class,
+                () -> command.execute(badHeightUnit),
+                "Should throw InvalidCommandException for an unrecognised height unit");
+    }
+
+    @Test
+    void testExecuteThrowsWhenWeightUnitIsInvalid() {
+        List<String> badWeightUnit =
+                List.of("Ivan", "170", "CENTIMETER", "70", "TONNES", "22", "MALE", "BULGARIA");
+
+        assertThrows(InvalidCommandException.class,
+                () -> command.execute(badWeightUnit),
+                "Should throw InvalidCommandException for an unrecognised weight unit");
+    }
+
+    @Test
+    void testExecuteThrowsWhenCountryIsInvalid() {
+        List<String> badCountry =
+                List.of("Ivan", "170", "CENTIMETER", "70", "KILOGRAM", "22", "MALE", "MARS");
+
+        assertThrows(InvalidCommandException.class,
+                () -> command.execute(badCountry),
+                "Should throw InvalidCommandException for an unrecognised country");
+    }
 }

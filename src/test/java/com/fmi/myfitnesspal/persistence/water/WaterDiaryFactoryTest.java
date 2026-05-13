@@ -1,9 +1,10 @@
 package com.fmi.myfitnesspal.persistence.water;
 
+import com.fmi.myfitnesspal.persistence.PersistenceStoreFactory;
+import com.fmi.myfitnesspal.persistence.file.PersistenceStore;
 import com.fmi.myfitnesspal.water.InMemoryWaterDiary;
 import com.fmi.myfitnesspal.water.Portion;
 import com.fmi.myfitnesspal.water.WaterDiary;
-import org.external.json.JsonConverter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -12,10 +13,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,7 +32,9 @@ public final class WaterDiaryFactoryTest {
     Path tempDirectory;
 
     @Mock
-    private JsonConverter jsonConverter;
+    private PersistenceStoreFactory storeFactoryMock;
+    @Mock
+    private PersistenceStore<DailyWaterDto> waterStoreMock;
 
     @Test
     void testCreateWithoutPersistenceReturnInMemoryWaterDiary() {
@@ -47,11 +52,14 @@ public final class WaterDiaryFactoryTest {
 
         factory.createIn(tempDirectory);
 
-        verifyNoInteractions(jsonConverter);
+        verifyNoInteractions(storeFactoryMock);
     }
 
     @Test
     void testCreateWithPersistenceReturnsWaterFileRepository() {
+        when(storeFactoryMock.createListStore(any(), eq(DailyWaterDto.class))).thenReturn(waterStoreMock);
+        when(waterStoreMock.load()).thenReturn(List.of());
+
         WaterDiaryFactory factory = buildFactory(true);
 
         WaterDiary createdDiary = factory.createIn(tempDirectory);
@@ -62,6 +70,9 @@ public final class WaterDiaryFactoryTest {
 
     @Test
     void testCreateWithPersistenceAndNonexistingFileReturnsEmptyDiary() {
+        when(storeFactoryMock.createListStore(any(), eq(DailyWaterDto.class))).thenReturn(waterStoreMock);
+        when(waterStoreMock.load()).thenReturn(List.of());
+
         WaterDiaryFactory factory = buildFactory(true);
 
         WaterDiary createdDiary = factory.createIn(tempDirectory);
@@ -72,6 +83,9 @@ public final class WaterDiaryFactoryTest {
 
     @Test
     void testCreateWithPersistenceAndNonexistingFileReturnsNoDailyWater() {
+        when(storeFactoryMock.createListStore(any(), eq(DailyWaterDto.class))).thenReturn(waterStoreMock);
+        when(waterStoreMock.load()).thenReturn(List.of());
+
         WaterDiaryFactory factory = buildFactory(true);
 
         WaterDiary createdDiary = factory.createIn(tempDirectory);
@@ -82,13 +96,12 @@ public final class WaterDiaryFactoryTest {
 
     @Test
     void testCreateWithPersistenceReturnsCorrectDiary() {
-        when(jsonConverter.serialize(any())).thenReturn("[]");
-        WaterDiaryFactory factory = new WaterDiaryFactory(
-                true, jsonConverter, new DailyWaterEntryDtoMapper()
-        );
+        when(storeFactoryMock.createListStore(any(), eq(DailyWaterDto.class))).thenReturn(waterStoreMock);
+        when(waterStoreMock.load()).thenReturn(List.of());
+
+        WaterDiaryFactory factory = buildFactory(true);
         WaterDiary createdDiary = factory.createIn(tempDirectory);
 
-        verifyNoInteractions(jsonConverter);
         createdDiary.addWater(CONSUMPTION_DATE, Portion.P_500);
 
         assertEquals(Portion.P_500.getQuantity(), createdDiary.getDailyWater(CONSUMPTION_DATE),
@@ -98,7 +111,7 @@ public final class WaterDiaryFactoryTest {
     private WaterDiaryFactory buildFactory(boolean persistToFile) {
         return new WaterDiaryFactory(
                 persistToFile,
-                jsonConverter,
+                storeFactoryMock,
                 new DailyWaterEntryDtoMapper()
         );
     }

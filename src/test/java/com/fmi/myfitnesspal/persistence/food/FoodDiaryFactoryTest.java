@@ -6,7 +6,8 @@ import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.FoodId;
 import com.fmi.myfitnesspal.food.InMemoryFoodDiary;
 
-import org.external.json.JsonConverter;
+import com.fmi.myfitnesspal.persistence.PersistenceStoreFactory;
+import com.fmi.myfitnesspal.persistence.file.ObjectPersistenceStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -16,11 +17,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -34,7 +37,9 @@ public final class FoodDiaryFactoryTest {
     Path tempDirectory;
 
     @Mock
-    private JsonConverter jsonConverter;
+    private PersistenceStoreFactory storeFactoryMock;
+    @Mock
+    private ObjectPersistenceStore<FoodDiaryDto> diaryStoreMock;
 
     @Test
     void testCreateWithoutPersistenceReturnsInMemoryFoodDiary() {
@@ -47,16 +52,19 @@ public final class FoodDiaryFactoryTest {
     }
 
     @Test
-    void testCreateWithoutPersistenceDoesNotCallJsonConverter() {
+    void testCreateWithoutPersistenceDoesNotCallPersistenceStoreFactory() {
         FoodDiaryFactory factory = buildFactory(false);
 
         factory.createIn(tempDirectory);
 
-        verifyNoInteractions(jsonConverter);
+        verifyNoInteractions(storeFactoryMock);
     }
 
     @Test
     void testCreateWithPersistenceReturnsFoodDiaryFileRepository() {
+        when(storeFactoryMock.createObjectStore(any(), eq(FoodDiaryDto.class))).thenReturn(diaryStoreMock);
+        when(diaryStoreMock.load()).thenReturn(Optional.empty());
+
         FoodDiaryFactory factory = buildFactory(true);
 
         FoodDiary createdDiary = factory.createIn(tempDirectory);
@@ -67,6 +75,9 @@ public final class FoodDiaryFactoryTest {
 
     @Test
     void testCreateWithPersistenceAndNonExistingFileStartsWithEmptyFoodEntries() {
+        when(storeFactoryMock.createObjectStore(any(), eq(FoodDiaryDto.class))).thenReturn(diaryStoreMock);
+        when(diaryStoreMock.load()).thenReturn(Optional.empty());
+
         FoodDiaryFactory factory = buildFactory(true);
 
         FoodDiary createdDiary = factory.createIn(tempDirectory);
@@ -77,6 +88,9 @@ public final class FoodDiaryFactoryTest {
 
     @Test
     void testCreateWithPersistenceAndNonExistingFileStartsWithEmptyMealEntries() {
+        when(storeFactoryMock.createObjectStore(any(), eq(FoodDiaryDto.class))).thenReturn(diaryStoreMock);
+        when(diaryStoreMock.load()).thenReturn(Optional.empty());
+
         FoodDiaryFactory factory = buildFactory(true);
 
         FoodDiary createdDiary = factory.createIn(tempDirectory);
@@ -87,7 +101,9 @@ public final class FoodDiaryFactoryTest {
 
     @Test
     void testCreateWithPersistenceCorrectlyTracksAddedFood() {
-        when(jsonConverter.serializeSingle(any())).thenReturn("{}");
+        when(storeFactoryMock.createObjectStore(any(), eq(FoodDiaryDto.class))).thenReturn(diaryStoreMock);
+        when(diaryStoreMock.load()).thenReturn(Optional.empty());
+
         FoodDiaryFactory factory = buildFactory(true);
         FoodDiary createdDiary = factory.createIn(tempDirectory);
         Food apple = Food.builder(new FoodId("none", "apple"), 2.0, 180.0).build();
@@ -102,7 +118,7 @@ public final class FoodDiaryFactoryTest {
     private FoodDiaryFactory buildFactory(boolean persistToFile) {
         return new FoodDiaryFactory(
                 persistToFile,
-                jsonConverter,
+                storeFactoryMock,
                 new FoodDiaryDtoMapper(new FoodDtoMapper())
         );
     }

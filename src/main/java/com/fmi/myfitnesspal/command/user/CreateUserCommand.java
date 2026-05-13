@@ -15,10 +15,13 @@ import com.fmi.myfitnesspal.user.weight.WeightMeasurementUnit;
 
 import java.util.List;
 
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseInt;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseSex;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 import static com.fmi.myfitnesspal.utility.NumberParser.parseInteger;
+import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseSex;
+import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseUserId;
+import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseLengthMeasurementUnit;
+import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseWeightMeasurementUnit;
+import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseCountry;
+import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 
 public final class CreateUserCommand implements ExecutableCommand {
 
@@ -59,14 +62,14 @@ public final class CreateUserCommand implements ExecutableCommand {
     }
 
     private UserProfile parseUserProfile(List<String> arguments) throws InvalidCommandException {
-        UserId id = new UserId(arguments.get(0));
-        int heightValue = parseInt(arguments.get(1));
-        LengthMeasurementUnit heightUnit = LengthMeasurementUnit.valueOf(arguments.get(2));
-        int weightValue = parseInt(arguments.get(3));
-        WeightMeasurementUnit weightUnit = WeightMeasurementUnit.valueOf(arguments.get(4));
+        UserId id = parseUserId(arguments.get(0));
+        int heightValue = parseInteger(arguments.get(1));
+        LengthMeasurementUnit heightUnit = parseLengthMeasurementUnit(arguments.get(2));
+        int weightValue = parseInteger(arguments.get(3));
+        WeightMeasurementUnit weightUnit = parseWeightMeasurementUnit(arguments.get(4));
         int age = parseInteger(arguments.get(5));
         Sex sex = parseSex(arguments.get(6));
-        Country country = Country.valueOf(arguments.get(7));
+        Country country = parseCountry(arguments.get(7));
 
         Height height = new Height(heightValue, heightUnit);
         Weight weight = new Weight(weightValue, weightUnit);

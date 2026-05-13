@@ -8,8 +8,8 @@ import com.fmi.myfitnesspal.water.WaterDiary;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.fmi.myfitnesspal.utility.NumberParser.parseInteger;
 import static com.fmi.myfitnesspal.utility.DateHelper.parseDate;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseInt;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 
 public final class RemoveWaterCommand implements ExecutableCommand {
@@ -27,7 +27,7 @@ public final class RemoveWaterCommand implements ExecutableCommand {
         validateArgumentsCount(arguments, ARGUMENTS_COUNT);
 
         LocalDate date = parseDate(arguments.get(0));
-        int quantity = parseInt(arguments.get(1));
+        int quantity = parseInteger(arguments.get(1));
 
         try {
             waterDiary.removeWater(date, quantity);

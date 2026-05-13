@@ -1,12 +1,11 @@
 package com.fmi.myfitnesspal.persistence.user;
 
-import com.fmi.myfitnesspal.persistence.file.JsonObjectPersistence;
+import com.fmi.myfitnesspal.persistence.PersistenceStoreFactory;
 import com.fmi.myfitnesspal.persistence.file.ObjectPersistenceStore;
 import com.fmi.myfitnesspal.persistence.file.PersistenceStore;
 import com.fmi.myfitnesspal.user.UserId;
 import com.fmi.myfitnesspal.user.UserPool;
 import com.fmi.myfitnesspal.user.UserProfile;
-import org.external.json.JsonConverter;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -22,18 +21,18 @@ public final class UserFileRepository implements UserPool {
     private final UserPool userPool;
     private final UserProfileDtoMapper userProfileDtoMapper;
     private final PersistenceStore<String> usernamesStore;
-    private final JsonConverter jsonConverter;
+    private final PersistenceStoreFactory storeFactory;
     private final Path usersRootPath;
 
     public UserFileRepository(UserPool userPool,
                               UserProfileDtoMapper userProfileDtoMapper,
                               PersistenceStore<String> usernamesStore,
-                              JsonConverter jsonConverter,
+                              PersistenceStoreFactory storeFactory,
                               Path usersRootPath) {
         this.userPool = userPool;
         this.userProfileDtoMapper = userProfileDtoMapper;
         this.usernamesStore = usernamesStore;
-        this.jsonConverter = jsonConverter;
+        this.storeFactory = storeFactory;
         this.usersRootPath = usersRootPath;
     }
 
@@ -94,7 +93,7 @@ public final class UserFileRepository implements UserPool {
     // is the factory for per-user profile stores
     private ObjectPersistenceStore<UserProfileDto> profileStoreFor(String username) {
         Path profilePath = usersRootPath.resolve(username).resolve(PROFILE_FILE_NAME);
-        return new JsonObjectPersistence<>(jsonConverter, profilePath, UserProfileDto.class);
+        return storeFactory.createObjectStore(profilePath, UserProfileDto.class);
     }
 
     private void createUserDirectory(Path userDirectory) {

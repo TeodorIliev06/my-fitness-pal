@@ -8,7 +8,7 @@ import com.fmi.myfitnesspal.exercise.StrengthExercise;
 
 import java.util.List;
 
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseInt;
+import static com.fmi.myfitnesspal.utility.NumberParser.parseInteger;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validatePositiveValues;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 
@@ -26,10 +26,10 @@ public final class CreateStrengthExerciseCommand implements ExecutableCommand {
         validateArgumentsCount(arguments, ARGUMENTS_COUNT);
 
         String name = arguments.get(0);
-        int sets = parseInt(arguments.get(1));
-        int reps = parseInt(arguments.get(2));
-        int weight = parseInt(arguments.get(3));
-        int burnedCalories = parseInt(arguments.get(4));
+        int sets = parseInteger(arguments.get(1));
+        int reps = parseInteger(arguments.get(2));
+        int weight = parseInteger(arguments.get(3));
+        int burnedCalories = parseInteger(arguments.get(4));
 
         validatePositiveValues(sets, reps, weight, burnedCalories);
 

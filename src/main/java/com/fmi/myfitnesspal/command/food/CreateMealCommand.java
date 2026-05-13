@@ -12,8 +12,8 @@ import com.fmi.myfitnesspal.food.Meal;
 
 import java.util.List;
 
+import static com.fmi.myfitnesspal.utility.NumberParser.parseDouble;
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
-import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseDouble;
 
 public final class CreateMealCommand implements ExecutableCommand {
     private static final String COMMAND_NAME = "create-meal";
