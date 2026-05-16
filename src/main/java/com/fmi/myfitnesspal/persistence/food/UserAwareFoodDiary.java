@@ -2,14 +2,12 @@ package com.fmi.myfitnesspal.persistence.food;
 
 import com.fmi.myfitnesspal.food.DailyFoodEntry;
 import com.fmi.myfitnesspal.food.DailyMealCaloriesSummary;
-import com.fmi.myfitnesspal.food.DailyMealEntry;
 import com.fmi.myfitnesspal.food.DailyNutritionSummary;
 import com.fmi.myfitnesspal.food.EatingTime;
 import com.fmi.myfitnesspal.food.Food;
+import com.fmi.myfitnesspal.food.FoodPortion;
 import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.FoodId;
-import com.fmi.myfitnesspal.food.Meal;
-import com.fmi.myfitnesspal.food.MealId;
 import com.fmi.myfitnesspal.food.WeeklyNutritionSummary;
 import com.fmi.myfitnesspal.user.UserAware;
 import com.fmi.myfitnesspal.user.UserProfile;
@@ -45,8 +43,8 @@ public final class UserAwareFoodDiary implements FoodDiary, UserAware {
     }
 
     @Override
-    public void addMeal(LocalDate consumptionDate, EatingTime eatingTime, Meal meal) {
-        activeDiary.addMeal(consumptionDate, eatingTime, meal);
+    public void addFoodPortions(LocalDate date, EatingTime eatingTime, List<FoodPortion> foodPortions) {
+        activeDiary.addFoodPortions(date, eatingTime, foodPortions);
     }
 
     @Override
@@ -55,18 +53,8 @@ public final class UserAwareFoodDiary implements FoodDiary, UserAware {
     }
 
     @Override
-    public void removeMeal(LocalDate consumptionDate, EatingTime eatingTime, MealId mealId) {
-        activeDiary.removeMeal(consumptionDate, eatingTime, mealId);
-    }
-
-    @Override
     public List<Food> getFoodsByDateAndEatingTime(LocalDate consumptionDate, EatingTime eatingTime) {
         return activeDiary.getFoodsByDateAndEatingTime(consumptionDate, eatingTime);
-    }
-
-    @Override
-    public List<Meal> getMealsByDateAndEatingTime(LocalDate consumptionDate, EatingTime eatingTime) {
-        return activeDiary.getMealsByDateAndEatingTime(consumptionDate, eatingTime);
     }
 
     @Override
@@ -112,10 +100,5 @@ public final class UserAwareFoodDiary implements FoodDiary, UserAware {
     @Override
     public List<DailyFoodEntry> getAllDailyFoodEntries() {
         return activeDiary.getAllDailyFoodEntries();
-    }
-
-    @Override
-    public List<DailyMealEntry> getAllDailyMealEntries() {
-        return activeDiary.getAllDailyMealEntries();
     }
 }

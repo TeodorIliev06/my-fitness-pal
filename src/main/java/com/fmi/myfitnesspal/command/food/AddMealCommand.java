@@ -17,28 +17,29 @@ import static com.fmi.myfitnesspal.command.utility.CommandUtilities.parseEatingT
 import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgumentsCount;
 
 public final class AddMealCommand implements ExecutableCommand {
+
     private static final String COMMAND_NAME = "add-meal";
     private static final int ARGUMENTS_COUNT = 4;
     private final FoodDiary foodDiary;
     private final MealPool mealPool;
 
-    public AddMealCommand(FoodDiary foodDiary, MealPool availableFood) {
+    public AddMealCommand(FoodDiary foodDiary, MealPool mealPool) {
         this.foodDiary = foodDiary;
-        this.mealPool = availableFood;
+        this.mealPool = mealPool;
     }
 
     @Override
     public String execute(List<String> arguments) throws InvalidCommandException {
         validateArgumentsCount(arguments, ARGUMENTS_COUNT);
 
-        LocalDate date = parseDate(arguments.get(0));
+        LocalDate consumptionDate = parseDate(arguments.get(0));
         EatingTime eatingTime = parseEatingTime(arguments.get(1));
         MealId mealId = new MealId(arguments.get(2), arguments.get(3));
         Meal targetMeal = this.mealPool.getMeal(mealId);
-        this.foodDiary.addMeal(date, eatingTime, targetMeal);
+
+        this.foodDiary.addFoodPortions(consumptionDate, eatingTime, targetMeal.getFoodPortions());
 
         return GlobalConstants.SUCCESSFULLY_ADDED_MEAL_MESSAGE;
-
     }
 
     @Override
@@ -48,6 +49,6 @@ public final class AddMealCommand implements ExecutableCommand {
 
     @Override
     public String getHelp() {
-        return "Usage: " + COMMAND_NAME + " <date> <eating time> <mealName> <mealDescription>";
+        return "Usage: " + COMMAND_NAME + " <date> <eatingTime> <mealName> <mealDescription>";
     }
 }

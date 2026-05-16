@@ -3,6 +3,10 @@ package com.fmi.myfitnesspal.command.utility;
 import com.fmi.myfitnesspal.calorie.CalorieGoalType;
 import com.fmi.myfitnesspal.constants.GlobalConstants;
 import com.fmi.myfitnesspal.food.EatingTime;
+import com.fmi.myfitnesspal.food.Food;
+import com.fmi.myfitnesspal.food.FoodId;
+import com.fmi.myfitnesspal.food.FoodPool;
+import com.fmi.myfitnesspal.food.FoodPortion;
 import com.fmi.myfitnesspal.user.UserId;
 import com.fmi.myfitnesspal.user.country.Country;
 import com.fmi.myfitnesspal.user.height.LengthMeasurementUnit;
@@ -11,8 +15,11 @@ import com.fmi.myfitnesspal.user.weight.WeightMeasurementUnit;
 import com.fmi.myfitnesspal.water.Portion;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+
+import static com.fmi.myfitnesspal.utility.NumberParser.parseDouble;
 
 public final class CommandUtilities {
 
@@ -40,6 +47,17 @@ public final class CommandUtilities {
                 throw new InvalidCommandException(GlobalConstants.NOT_VALID_ARGUMENTS_NEGATIVE_VALUE_MESSAGE);
             }
         }
+    }
+
+    public static String formatItemList(List<?> items) {
+        StringBuilder result = new StringBuilder();
+
+        for (Object item : items) {
+            result.append(item.toString());
+            result.append(System.lineSeparator());
+        }
+
+        return result.toString();
     }
 
     public static Portion parsePortion(String portion) throws InvalidCommandException {
@@ -106,5 +124,19 @@ public final class CommandUtilities {
         } catch (IllegalArgumentException e) {
             throw new InvalidCommandException(GlobalConstants.NOT_EXISTING_COUNTRY_MESSAGE, e);
         }
+    }
+
+    public static List<FoodPortion> parseFoodPortions(
+            List<String> arguments, int startIndex, FoodPool foodPool) throws InvalidCommandException {
+        List<FoodPortion> portions = new ArrayList<>();
+
+        for (int i = startIndex; i < arguments.size(); i += 3) {
+            FoodId foodId = new FoodId(arguments.get(i), arguments.get(i + 1));
+            double servingsUsed = parseDouble(arguments.get(i + 2));
+            Food targetFood = foodPool.getFood(foodId);
+            portions.add(new FoodPortion(targetFood, servingsUsed));
+        }
+
+        return portions;
     }
 }

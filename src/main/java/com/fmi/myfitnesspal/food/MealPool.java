@@ -1,27 +1,14 @@
 package com.fmi.myfitnesspal.food;
 
-import com.fmi.myfitnesspal.constants.GlobalConstants;
+import java.util.List;
 
-import java.util.HashMap;
-import java.util.Map;
+public interface MealPool {
 
-public final class MealPool {
+    void addMeal(Meal toAdd);
 
-    private final Map<MealId, Meal> meals;
+    void removeMeal(MealId targetId);
 
-    public MealPool() {
-        this.meals = new HashMap<>();
-    }
+    Meal getMeal(MealId targetId);
 
-    public void addMeal(Meal toAdd) {
-        this.meals.put(toAdd.getId(), toAdd);
-    }
-
-    public Meal getMeal(MealId targetId) {
-        if (!this.meals.containsKey(targetId)) {
-            throw new IllegalArgumentException(GlobalConstants.NOT_EXISTING_MEAL_MESSAGE);
-        }
-
-        return this.meals.get(targetId);
-    }
+    List<Meal> getAllMeals();
 }

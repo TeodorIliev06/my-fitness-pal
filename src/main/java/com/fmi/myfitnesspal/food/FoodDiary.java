@@ -7,15 +7,11 @@ public interface FoodDiary {
 
     void addFood(LocalDate consumptionDate, EatingTime eatingTime, Food food, double numberOfServings);
 
-    void addMeal(LocalDate consumptionDate, EatingTime eatingTime, Meal meal);
+    void addFoodPortions(LocalDate consumptionDate, EatingTime eatingTime, List<FoodPortion> foodPortions);
 
     void removeFood(LocalDate consumptionDate, EatingTime eatingTime, FoodId foodId);
 
-    void removeMeal(LocalDate consumptionDate, EatingTime eatingTime, MealId mealId);
-
     List<Food> getFoodsByDateAndEatingTime(LocalDate consumptionDate, EatingTime eatingTime);
-
-    List<Meal> getMealsByDateAndEatingTime(LocalDate consumptionDate, EatingTime eatingTime);
 
     List<Food> getFoodsByWeekNumber(int weekNumber, int year);
 
@@ -34,6 +30,4 @@ public interface FoodDiary {
     DailyMealCaloriesSummary getDailyMealCaloriesSummary(LocalDate consumptionDate);
 
     List<DailyFoodEntry> getAllDailyFoodEntries();
-
-    List<DailyMealEntry> getAllDailyMealEntries();
 }

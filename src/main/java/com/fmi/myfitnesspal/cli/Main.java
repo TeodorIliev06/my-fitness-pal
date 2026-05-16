@@ -23,10 +23,15 @@ import com.fmi.myfitnesspal.command.food.ShowMealsCommand;
 import com.fmi.myfitnesspal.command.food.ShowFoodsCommand;
 import com.fmi.myfitnesspal.command.food.CreateMealCommand;
 import com.fmi.myfitnesspal.command.food.CreateFoodCommand;
+import com.fmi.myfitnesspal.command.food.AddRecipeCommand;
+import com.fmi.myfitnesspal.command.food.CreateRecipeCommand;
+import com.fmi.myfitnesspal.command.food.RemoveRecipeCommand;
+import com.fmi.myfitnesspal.command.food.ShowRecipesCommand;
 import com.fmi.myfitnesspal.command.food.ShowWeeklyCaloriesCommand;
 import com.fmi.myfitnesspal.command.food.ShowDailyMealCaloriesCommand;
 import com.fmi.myfitnesspal.command.food.ShowDailyNutrientsCommand;
 import com.fmi.myfitnesspal.command.food.ShowWeeklyNutrientsCommand;
+import com.fmi.myfitnesspal.command.food.ShowDailyFoodLogCommand;
 import com.fmi.myfitnesspal.command.calorie.CheckCalorieGoalCommand;
 import com.fmi.myfitnesspal.command.calorie.SetCalorieGoalCommand;
 import com.fmi.myfitnesspal.command.user.CreateUserCommand;
@@ -42,6 +47,9 @@ import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.FoodPool;
 import com.fmi.myfitnesspal.food.InMemoryFoodDiary;
 import com.fmi.myfitnesspal.food.MealPool;
+import com.fmi.myfitnesspal.food.InMemoryMealPool;
+import com.fmi.myfitnesspal.food.RecipePool;
+import com.fmi.myfitnesspal.food.InMemoryRecipePool;
 import com.fmi.myfitnesspal.calorie.CalorieGoalHolder;
 import com.fmi.myfitnesspal.persistence.file.JsonPersistenceStoreFactory;
 import com.fmi.myfitnesspal.persistence.PersistenceStoreFactory;
@@ -90,7 +98,8 @@ public final class Main {
 
     public static void main(String[] args) {
         CalorieGoalHolder calorieGoalHolder = new CalorieGoalHolder();
-        MealPool mealPool = new MealPool();
+        MealPool mealPool = new InMemoryMealPool();
+        RecipePool recipePool = new InMemoryRecipePool();
         ExercisePool exercisePool = new InMemoryExercisePool();
         ExerciseDiary exerciseDiary = new InMemoryExerciseDiary(exercisePool);
         ExecutableCommandRegistry registry = new ExecutableCommandRegistry();
@@ -153,7 +162,7 @@ public final class Main {
         userSession.switchTo(userPool.findById(guestProfile.userId()).orElseThrow());
 
         fillRegistry(registry, userAwareWaterDiary, foodPool, userAwareFoodDiary,
-                mealPool, exercisePool, exerciseDiary,
+                mealPool, recipePool, exercisePool, exerciseDiary,
                 scanner, sliceMapper, barChartDisplayer, pieChartDisplayer,
                 calorieGoalHolder, userSession, userPool);
 
@@ -163,7 +172,8 @@ public final class Main {
 
     private static void fillRegistry(ExecutableCommandRegistry registry, WaterDiary waterDiary,
                                      FoodPool foodPool, FoodDiary foodDiary,
-                                     MealPool mealPool, ExercisePool exercisePool, ExerciseDiary exerciseDiary,
+                                     MealPool mealPool, RecipePool recipePool,
+                                     ExercisePool exercisePool, ExerciseDiary exerciseDiary,
                                      Scanner scanner,
                                      NutritionSliceMapper sliceMapper,
                                      BarChartDisplayer barChartDisplayer, PieChartDisplayer pieChartDisplayer,
@@ -180,8 +190,12 @@ public final class Main {
         registry.addCommand(new RemoveFoodCommand(foodDiary));
         registry.addCommand(new CreateMealCommand(mealPool, foodPool));
         registry.addCommand(new AddMealCommand(foodDiary, mealPool));
-        registry.addCommand(new ShowMealsCommand(foodDiary));
-        registry.addCommand(new RemoveMealCommand(foodDiary));
+        registry.addCommand(new ShowMealsCommand(mealPool));
+        registry.addCommand(new RemoveMealCommand(mealPool));
+        registry.addCommand(new CreateRecipeCommand(recipePool, foodPool));
+        registry.addCommand(new AddRecipeCommand(foodDiary, recipePool));
+        registry.addCommand(new ShowRecipesCommand(recipePool));
+        registry.addCommand(new RemoveRecipeCommand(recipePool));
         registry.addCommand(new ShowWeeklyCaloriesCommand(foodDiary));
         registry.addCommand(new HelpCommand(registry));
         registry.addCommand(new CreateUserCommand(userPool));
@@ -200,6 +214,7 @@ public final class Main {
         registry.addCommand(new ShowDailyMealCaloriesCommand(foodDiary, pieChartDisplayer, sliceMapper));
         registry.addCommand(new ShowDailyNutrientsCommand(foodDiary, pieChartDisplayer, sliceMapper));
         registry.addCommand(new ShowWeeklyNutrientsCommand(foodDiary, pieChartDisplayer, sliceMapper));
+        registry.addCommand(new ShowDailyFoodLogCommand(foodDiary));
         registry.addCommand(new SetCalorieGoalCommand(calorieGoalHolder));
         registry.addCommand(new CheckCalorieGoalCommand(foodDiary, calorieGoalHolder, barChartDisplayer));
     }
