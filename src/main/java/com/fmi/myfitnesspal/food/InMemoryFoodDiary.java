@@ -27,30 +27,27 @@ public final class InMemoryFoodDiary implements FoodDiary {
         this.diary = new HashMap<>();
     }
 
+    @Override
     public void removeFood(LocalDate date, EatingTime eatingTime, FoodId foodId) {
         getValidatedDailyDiary(date).removeFood(eatingTime, foodId);
     }
 
-    public void removeMeal(LocalDate date, EatingTime eatingTime, MealId id) {
-        getValidatedDailyDiary(date).removeMeal(eatingTime, id);
-    }
-
+    @Override
     public void addFood(LocalDate date, EatingTime eatingTime, Food food, double numberOfServings) {
         getOrCreateDailyDiary(date).addFood(eatingTime, food, numberOfServings);
     }
 
-    public void addMeal(LocalDate date, EatingTime eatingTime, Meal meal) {
-        getOrCreateDailyDiary(date).addMeal(eatingTime, meal);
+    @Override
+    public void addFoodPortions(LocalDate date, EatingTime eatingTime, List<FoodPortion> foodPortions) {
+        foodPortions.forEach(portion -> addFood(date, eatingTime, portion.food(), portion.servingsUsed()));
     }
 
+    @Override
     public List<Food> getFoodsByDateAndEatingTime(LocalDate date, EatingTime eatingTime) {
         return getValidatedDailyDiary(date).getFoodsByEatingTime(eatingTime);
     }
 
-    public List<Meal> getMealsByDateAndEatingTime(LocalDate date, EatingTime eatingTime) {
-        return getValidatedDailyDiary(date).getMealsByEatingTime(eatingTime);
-    }
-
+    @Override
     public List<Food> getFoodsByWeekNumber(int weekNumber, int year) {
         return diary.keySet().stream()
                 .filter(date -> getWeekNumberFrom(date) == weekNumber
@@ -59,18 +56,21 @@ public final class InMemoryFoodDiary implements FoodDiary {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public List<Food> getAllFoodsByDate(LocalDate date) {
         return findDailyDiary(date)
                 .map(DailyFoodDiary::getAllFoods)
                 .orElse(List.of());
     }
 
+    @Override
     public List<Food> getAllFoodsByDateAndEatingTime(LocalDate date, EatingTime eatingTime) {
         return findDailyDiary(date)
-                .map(dailyDiary -> dailyDiary.getAllFoodsByEatingTime(eatingTime))
+                .map(dailyDiary -> dailyDiary.getFoodsByEatingTime(eatingTime))
                 .orElse(List.of());
     }
 
+    @Override
     public WeeklyNutritionSummary getWeeklyNutritionSummary(int weekNumber, int year) {
         NutritionTotals totals = sumNutritionFrom(getFoodsByWeekNumber(weekNumber, year));
         return new WeeklyNutritionSummary(
@@ -83,6 +83,7 @@ public final class InMemoryFoodDiary implements FoodDiary {
         );
     }
 
+    @Override
     public WeeklyNutritionSummary getWeeklyNutritionSummary(LocalDate date) {
         int weekNumber = getWeekNumberFrom(date);
         int year = getYearFrom(date);
@@ -90,6 +91,7 @@ public final class InMemoryFoodDiary implements FoodDiary {
         return getWeeklyNutritionSummary(weekNumber, year);
     }
 
+    @Override
     public DailyNutritionSummary getDailyNutritionSummary(LocalDate date) {
         NutritionTotals totals = sumNutritionFrom(getAllFoodsByDate(date));
         return new DailyNutritionSummary(
@@ -101,6 +103,7 @@ public final class InMemoryFoodDiary implements FoodDiary {
         );
     }
 
+    @Override
     public List<DailyNutritionSummary> getDailyNutritionSummariesForWeek(LocalDate targetDate) {
         LocalDate monday = targetDate.with(DayOfWeek.MONDAY);
         return IntStream.range(0, DAYS_IN_WEEK)
@@ -109,6 +112,7 @@ public final class InMemoryFoodDiary implements FoodDiary {
                 .toList();
     }
 
+    @Override
     public DailyMealCaloriesSummary getDailyMealCaloriesSummary(LocalDate date) {
         Map<EatingTime, Double> caloriesByEatingTime = new EnumMap<>(EatingTime.class);
 
@@ -117,6 +121,13 @@ public final class InMemoryFoodDiary implements FoodDiary {
         }
 
         return new DailyMealCaloriesSummary(date, caloriesByEatingTime);
+    }
+
+    @Override
+    public List<DailyFoodEntry> getAllDailyFoodEntries() {
+        return diary.entrySet().stream()
+                .flatMap(entry -> foodEntriesForDate(entry.getKey(), entry.getValue()))
+                .toList();
     }
 
     private NutritionTotals sumNutritionFrom(List<Food> foods) {
@@ -150,30 +161,10 @@ public final class InMemoryFoodDiary implements FoodDiary {
         return Optional.of(total);
     }
 
-    @Override
-    public List<DailyFoodEntry> getAllDailyFoodEntries() {
-        return diary.entrySet().stream()
-                .flatMap(entry -> foodEntriesForDate(entry.getKey(), entry.getValue()))
-                .toList();
-    }
-
-    @Override
-    public List<DailyMealEntry> getAllDailyMealEntries() {
-        return diary.entrySet().stream()
-                .flatMap(entry -> mealEntriesForDate(entry.getKey(), entry.getValue()))
-                .toList();
-    }
-
     private Stream<DailyFoodEntry> foodEntriesForDate(LocalDate consumptionDate, DailyFoodDiary dailyDiary) {
         return Stream.of(EatingTime.values())
                 .flatMap(eatingTime -> dailyDiary.getFoodsByEatingTime(eatingTime).stream()
                         .map(food -> new DailyFoodEntry(consumptionDate, eatingTime, food)));
-    }
-
-    private Stream<DailyMealEntry> mealEntriesForDate(LocalDate consumptionDate, DailyFoodDiary dailyDiary) {
-        return Stream.of(EatingTime.values())
-                .flatMap(eatingTime -> dailyDiary.getMealsByEatingTime(eatingTime).stream()
-                        .map(meal -> new DailyMealEntry(consumptionDate, eatingTime, meal)));
     }
 
     private DailyFoodDiary getOrCreateDailyDiary(LocalDate date) {

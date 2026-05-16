@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public final class MealTest {
@@ -33,37 +32,40 @@ public final class MealTest {
     }
 
     @Test
-    public void testAddFood() {
-        meal.addFood(first, 2);
-        meal.addFood(second, 1);
+    public void testAddFoodPortion() {
+        meal.addFoodPortion(first, 2.0);
+        meal.addFoodPortion(second, 1.0);
 
-        List<Food> foods = meal.getFoods();
+        List<FoodPortion> foodPortions = meal.getFoodPortions();
 
-        assertEquals(2, foods.size());
-        assertEquals(foods.get(0).getId(), new FoodId("apple", "green"));
-        assertEquals(foods.get(1).getId(), new FoodId("banana", "medium and yellow"));
+        assertEquals(2, foodPortions.size(),
+                "Meal must contain exactly 2 food portions after two addFoodPortion calls");
+        assertEquals(new FoodId("apple", "green"), foodPortions.get(0).food().getId(),
+                "First food portion must be apple");
+        assertEquals(new FoodId("banana", "medium and yellow"), foodPortions.get(1).food().getId(),
+                "Second food portion must be banana");
     }
 
     @Test
-    public void testRemoveFood() {
-        meal.addFood(first, 2);
-        meal.addFood(second, 1);
+    public void testRemoveFoodPortion() {
+        meal.addFoodPortion(first, 2.0);
+        meal.addFoodPortion(second, 1.0);
 
-        meal.removeFood(new FoodId("apple", "green"));
+        meal.removeFoodPortion(new FoodId("apple", "green"));
 
-        List<Food> foods = meal.getFoods();
+        List<FoodPortion> foodPortions = meal.getFoodPortions();
 
-        assertEquals(1, foods.size());
-        assertNotEquals(foods.get(0).getId(), new FoodId("apple", "green"));
-        assertEquals(foods.get(0).getId(), new FoodId("banana", "medium and yellow"));
+        assertEquals(1, foodPortions.size(), "Meal must contain 1 food portion after removing apple");
+        assertEquals(new FoodId("banana", "medium and yellow"), foodPortions.get(0).food().getId(),
+                "Remaining food portion must be banana");
     }
 
     @Test
-    public void testRemoveNonExistingFood() {
-        meal.addFood(first, 2);
+    public void testRemoveNonExistingFoodPortionThrows() {
+        meal.addFoodPortion(first, 2.0);
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            meal.removeFood(new FoodId("banana", "medium and yellow"));
-        });
+        assertThrows(IllegalArgumentException.class,
+                () -> meal.removeFoodPortion(new FoodId("banana", "medium and yellow")),
+                "Removing an food portion not in the meal must throw IllegalArgumentException");
     }
 }

@@ -87,19 +87,6 @@ public final class FoodDiaryFactoryTest {
     }
 
     @Test
-    void testCreateWithPersistenceAndNonExistingFileStartsWithEmptyMealEntries() {
-        when(storeFactoryMock.createObjectStore(any(), eq(FoodDiaryDto.class))).thenReturn(diaryStoreMock);
-        when(diaryStoreMock.load()).thenReturn(Optional.empty());
-
-        FoodDiaryFactory factory = buildFactory(true);
-
-        FoodDiary createdDiary = factory.createIn(tempDirectory);
-
-        assertTrue(createdDiary.getAllDailyMealEntries().isEmpty(),
-                "getAllDailyMealEntries should be empty when no persisted file exists yet");
-    }
-
-    @Test
     void testCreateWithPersistenceCorrectlyTracksAddedFood() {
         when(storeFactoryMock.createObjectStore(any(), eq(FoodDiaryDto.class))).thenReturn(diaryStoreMock);
         when(diaryStoreMock.load()).thenReturn(Optional.empty());

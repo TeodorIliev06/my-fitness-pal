@@ -85,19 +85,6 @@ public final class InMemoryFoodDiaryTest {
     }
 
     @Test
-    public void testAddMeal() {
-        Meal greekSalad = createMealWithoutFood();
-        foodDiary.addMeal(CONSUMPTION_DATE, EatingTime.LUNCH, greekSalad);
-
-        List<Meal> lunchMeals = foodDiary.getMealsByDateAndEatingTime(CONSUMPTION_DATE, EatingTime.LUNCH);
-
-        assertFalse(lunchMeals.isEmpty(),
-                "Lunch must contain the meal that was just added");
-        assertEquals(greekSalad.getId(), lunchMeals.get(0).getId(),
-                "The stored meal must have the same id as the added meal");
-    }
-
-    @Test
     public void testRemoveFood() {
         foodDiary.addFood(CONSUMPTION_DATE, EatingTime.DINNER, APPLE, 1);
         foodDiary.removeFood(CONSUMPTION_DATE, EatingTime.DINNER, APPLE.getId());
@@ -111,24 +98,6 @@ public final class InMemoryFoodDiaryTest {
         assertThrows(IllegalArgumentException.class,
                 () -> foodDiary.removeFood(CONSUMPTION_DATE, EatingTime.BREAKFAST, APPLE.getId()),
                 "Removing food for a date with no diary entry must throw IllegalArgumentException");
-    }
-
-    @Test
-    public void testRemoveMeal() {
-        Meal greekSalad = createMealWithoutFood();
-        foodDiary.addMeal(CONSUMPTION_DATE, EatingTime.BREAKFAST, greekSalad);
-        foodDiary.removeMeal(CONSUMPTION_DATE, EatingTime.BREAKFAST, greekSalad.getId());
-
-        assertTrue(foodDiary.getMealsByDateAndEatingTime(CONSUMPTION_DATE, EatingTime.BREAKFAST).isEmpty(),
-                "Breakfast must be empty after the only meal is removed");
-    }
-
-    @Test
-    public void testRemoveMealThrowsWhenDateHasNoEntry() {
-        Meal greekSalad = createMealWithoutFood();
-        assertThrows(IllegalArgumentException.class,
-                () -> foodDiary.removeMeal(CONSUMPTION_DATE, EatingTime.BREAKFAST, greekSalad.getId()),
-                "Removing a meal for a date with no diary entry must throw IllegalArgumentException");
     }
 
     @Test
@@ -151,17 +120,6 @@ public final class InMemoryFoodDiaryTest {
     }
 
     @Test
-    public void testGetAllFoodsByDateIncludesFoodsFromMeals() {
-        Meal mealContainingApple = createMealContaining(APPLE);
-        foodDiary.addMeal(CONSUMPTION_DATE, EatingTime.DINNER, mealContainingApple);
-
-        List<Food> allFoods = foodDiary.getAllFoodsByDate(CONSUMPTION_DATE);
-
-        assertTrue(allFoods.stream().anyMatch(f -> f.getId().equals(APPLE.getId())),
-                "getAllFoodsByDate must include foods that belong to logged meals");
-    }
-
-    @Test
     public void testGetAllFoodsByDateAndEatingTimeReturnsEmptyListWhenDateHasNoEntry() {
         List<Food> foods = foodDiary.getAllFoodsByDateAndEatingTime(CONSUMPTION_DATE, EatingTime.BREAKFAST);
 
@@ -180,17 +138,6 @@ public final class InMemoryFoodDiaryTest {
                 "getAllFoodsByDateAndEatingTime must return only foods for the requested eating time");
         assertEquals(APPLE.getId(), breakfastFoods.get(0).getId(),
                 "The returned food must be the one logged at breakfast");
-    }
-
-    @Test
-    public void testGetAllFoodsByDateAndEatingTimeIncludesFoodsFromMeals() {
-        Meal mealContainingApple = createMealContaining(APPLE);
-        foodDiary.addMeal(CONSUMPTION_DATE, EatingTime.DINNER, mealContainingApple);
-
-        List<Food> dinnerFoods = foodDiary.getAllFoodsByDateAndEatingTime(CONSUMPTION_DATE, EatingTime.DINNER);
-
-        assertTrue(dinnerFoods.stream().anyMatch(f -> f.getId().equals(APPLE.getId())),
-                "getAllFoodsByDateAndEatingTime must include foods that belong to logged meals");
     }
 
     @Test
@@ -297,17 +244,6 @@ public final class InMemoryFoodDiaryTest {
                 "Fats must be absent when no logged food tracks that macro");
         assertTrue(summary.carbs().isEmpty(),
                 "Carbs must be absent when no logged food tracks that macro");
-    }
-
-    @Test
-    public void testGetDailyNutritionSummaryIncludesCaloriesFromMealFoods() {
-        Meal mealContainingChicken = createMealContaining(CHICKEN_BREAST);
-        foodDiary.addMeal(CONSUMPTION_DATE, EatingTime.DINNER, mealContainingChicken);
-
-        DailyNutritionSummary summary = foodDiary.getDailyNutritionSummary(CONSUMPTION_DATE);
-
-        assertEquals(CHICKEN_BREAST.getCalories(), summary.calories(),
-                "Calories from foods inside meals must be included in the daily nutrition summary");
     }
 
     @Test
@@ -465,15 +401,5 @@ public final class InMemoryFoodDiaryTest {
                 "Eating times with no logged food must contribute 0 calories to the summary");
         assertEquals(0.0, summary.getCaloriesFor(EatingTime.SNACKS),
                 "Eating times with no logged food must contribute 0 calories to the summary");
-    }
-
-    private Meal createMealWithoutFood() {
-        return new Meal(new MealId("Greek Salad", "feta and olives"));
-    }
-
-    private Meal createMealContaining(Food food) {
-        Meal meal = new Meal(new MealId("Mixed Bowl", "varied ingredients"));
-        meal.addFood(food, 1);
-        return meal;
     }
 }

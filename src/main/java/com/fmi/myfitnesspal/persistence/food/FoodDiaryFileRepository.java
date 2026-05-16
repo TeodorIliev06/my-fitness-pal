@@ -4,12 +4,10 @@ import com.fmi.myfitnesspal.food.DailyMealCaloriesSummary;
 import com.fmi.myfitnesspal.food.DailyNutritionSummary;
 import com.fmi.myfitnesspal.food.EatingTime;
 import com.fmi.myfitnesspal.food.Food;
+import com.fmi.myfitnesspal.food.FoodPortion;
 import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.DailyFoodEntry;
 import com.fmi.myfitnesspal.food.FoodId;
-import com.fmi.myfitnesspal.food.Meal;
-import com.fmi.myfitnesspal.food.DailyMealEntry;
-import com.fmi.myfitnesspal.food.MealId;
 import com.fmi.myfitnesspal.food.WeeklyNutritionSummary;
 import com.fmi.myfitnesspal.persistence.file.ObjectPersistenceStore;
 
@@ -36,8 +34,8 @@ public final class FoodDiaryFileRepository implements FoodDiary {
     }
 
     @Override
-    public void addMeal(LocalDate consumptionDate, EatingTime eatingTime, Meal meal) {
-        foodDiary.addMeal(consumptionDate, eatingTime, meal);
+    public void addFoodPortions(LocalDate date, EatingTime eatingTime, List<FoodPortion> foodPortions) {
+        foodPortions.forEach(portion -> addFood(date, eatingTime, portion.food(), portion.servingsUsed()));
         saveCurrentState();
     }
 
@@ -48,19 +46,8 @@ public final class FoodDiaryFileRepository implements FoodDiary {
     }
 
     @Override
-    public void removeMeal(LocalDate consumptionDate, EatingTime eatingTime, MealId mealId) {
-        foodDiary.removeMeal(consumptionDate, eatingTime, mealId);
-        saveCurrentState();
-    }
-
-    @Override
     public List<Food> getFoodsByDateAndEatingTime(LocalDate consumptionDate, EatingTime eatingTime) {
         return foodDiary.getFoodsByDateAndEatingTime(consumptionDate, eatingTime);
-    }
-
-    @Override
-    public List<Meal> getMealsByDateAndEatingTime(LocalDate consumptionDate, EatingTime eatingTime) {
-        return foodDiary.getMealsByDateAndEatingTime(consumptionDate, eatingTime);
     }
 
     @Override
@@ -108,11 +95,6 @@ public final class FoodDiaryFileRepository implements FoodDiary {
         return foodDiary.getAllDailyFoodEntries();
     }
 
-    @Override
-    public List<DailyMealEntry> getAllDailyMealEntries() {
-        return foodDiary.getAllDailyMealEntries();
-    }
-
     void loadInitialState() {
         persistenceStore.load().ifPresent(this::restoreFromDto);
     }
@@ -122,18 +104,10 @@ public final class FoodDiaryFileRepository implements FoodDiary {
                 .map(foodDiaryDtoMapper::toDailyFoodEntry)
                 .forEach(entry -> foodDiary.addFood(
                         entry.consumptionDate(), entry.eatingTime(), entry.food(), 1.0));
-
-        dto.meals().stream()
-                .map(foodDiaryDtoMapper::toDailyMealEntry)
-                .forEach(entry -> foodDiary.addMeal(
-                        entry.consumptionDate(), entry.eatingTime(), entry.meal()));
     }
 
     private void saveCurrentState() {
-        FoodDiaryDto dto = foodDiaryDtoMapper.toDto(
-                foodDiary.getAllDailyFoodEntries(),
-                foodDiary.getAllDailyMealEntries()
-        );
+        FoodDiaryDto dto = foodDiaryDtoMapper.toDto(foodDiary.getAllDailyFoodEntries());
         persistenceStore.save(dto);
     }
 }

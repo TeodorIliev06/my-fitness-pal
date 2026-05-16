@@ -14,7 +14,7 @@ public class MealBase {
 
     @BeforeEach
     public void setUp() {
-        mealPool = new MealPool();
+        mealPool = new InMemoryMealPool();
         firstMeal = new Meal(new MealId("bolognese", "tomato sauce and meat"));
         secondMeal = new Meal(new MealId("carbonara", "cream sauce and meat"));
     }

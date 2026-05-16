@@ -1,65 +1,65 @@
 package com.fmi.myfitnesspal.command.food;
 
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
-import com.fmi.myfitnesspal.food.InMemoryFoodPool;
-import com.fmi.myfitnesspal.food.FoodId;
 import com.fmi.myfitnesspal.constants.GlobalConstants;
-import org.junit.jupiter.api.BeforeEach;
+import com.fmi.myfitnesspal.food.Food;
+import com.fmi.myfitnesspal.food.FoodPool;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import java.util.ArrayList;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+
+@ExtendWith(MockitoExtension.class)
 public final class CreateFoodCommandTest {
 
-    private CreateFoodCommand createFoodCommand;
-    private InMemoryFoodPool inMemoryFoodPool;
+    @Mock
+    private FoodPool foodPool;
 
-    @BeforeEach
-    public void setUp() {
-        inMemoryFoodPool = new InMemoryFoodPool();
-        createFoodCommand = new CreateFoodCommand(inMemoryFoodPool);
-    }
+    @InjectMocks
+    private CreateFoodCommand createFoodCommand;
 
     @Test
     public void testExecuteWithValidArguments() throws InvalidCommandException {
-        List<String> arguments = new ArrayList<>();
-        arguments.add("Apple");
-        arguments.add("Red");
-        arguments.add("100");
-        arguments.add("52");
-        arguments.add("0.2");
-        arguments.add("0.3");
-        arguments.add("13.8");
+        List<String> arguments = List.of("Apple", "Red", "100", "52", "0.2", "0.3", "13.8");
 
-        assertEquals(GlobalConstants.SUCCESSFULLY_CREATED_FOOD_MESSAGE, createFoodCommand.execute(arguments));
+        String result = createFoodCommand.execute(arguments);
 
-        assertNotNull(inMemoryFoodPool.getFood(new FoodId("Apple", "Red")));
+        assertEquals(GlobalConstants.SUCCESSFULLY_CREATED_FOOD_MESSAGE, result,
+                "execute must return the creation success constant when all 7 arguments are valid");
     }
 
     @Test
-    public void testExecuteWithInvalidArgumentsCount() {
-        List<String> arguments = new ArrayList<>();
-        arguments.add("Apple");
-        arguments.add("Red");
-        arguments.add("100");
+    public void testExecuteWithValidArgumentsDelegatesAddFoodToPool() throws InvalidCommandException {
+        List<String> arguments = List.of("Apple", "Red", "100", "52", "0.2", "0.3", "13.8");
 
-        assertThrows(InvalidCommandException.class, () -> createFoodCommand.execute(arguments));
+        createFoodCommand.execute(arguments);
+
+        verify(foodPool).addFood(any(Food.class));
     }
 
     @Test
-    public void testExecuteWithInvalidNumericValue() {
-        List<String> arguments = new ArrayList<>();
-        arguments.add("Banana");
-        arguments.add("Yellow");
-        arguments.add("100g");
-        arguments.add("52");
-        arguments.add("0.2");
-        arguments.add("0.3");
-        arguments.add("13.8");
+    public void testExecuteWithInvalidArgumentsCountThrows() {
+        List<String> arguments = List.of("Apple", "Red", "100");
 
-        assertThrows(InvalidCommandException.class, () -> createFoodCommand.execute(arguments));
+        assertThrows(InvalidCommandException.class,
+                () -> createFoodCommand.execute(arguments),
+                "Fewer than 7 arguments must throw InvalidCommandException");
+    }
+
+    @Test
+    public void testExecuteWithInvalidNumericValueThrows() {
+        List<String> arguments = List.of("Banana", "Yellow", "100g", "52", "0.2", "0.3", "13.8");
+
+        assertThrows(InvalidCommandException.class,
+                () -> createFoodCommand.execute(arguments),
+                "A non-numeric serving size must throw InvalidCommandException");
     }
 }

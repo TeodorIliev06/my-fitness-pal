@@ -1,74 +1,81 @@
 package com.fmi.myfitnesspal.command.food;
 
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
-import com.fmi.myfitnesspal.food.InMemoryFoodPool;
+import com.fmi.myfitnesspal.food.Meal;
 import com.fmi.myfitnesspal.food.MealPool;
 import com.fmi.myfitnesspal.food.FoodId;
 import com.fmi.myfitnesspal.food.Food;
-import com.fmi.myfitnesspal.food.MealId;
+import com.fmi.myfitnesspal.food.FoodPool;
 import com.fmi.myfitnesspal.constants.GlobalConstants;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import java.util.ArrayList;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
 public final class CreateMealCommandTest {
 
-    private CreateMealCommand createMealCommand;
+    private static final FoodId APPLE_ID = new FoodId("Apple", "Red");
+    private static final FoodId BANANA_ID = new FoodId("Banana", "Yellow");
+    private static final Food APPLE = Food.builder(APPLE_ID, 2, 2).build();
+    private static final Food BANANA = Food.builder(BANANA_ID, 2, 2).build();
+
+    @Mock
     private MealPool mealPool;
-    private InMemoryFoodPool inMemoryFoodPool;
+    @Mock
+    private FoodPool foodPool;
 
-    @BeforeEach
-    public void setUp() {
-        mealPool = new MealPool();
-        inMemoryFoodPool = new InMemoryFoodPool();
-        createMealCommand = new CreateMealCommand(mealPool, inMemoryFoodPool);
+    @InjectMocks
+    private CreateMealCommand createMealCommand;
 
-        Food firstFood = Food.builder(new FoodId("Apple", "Red"), 2, 2)
-                .build();
+    @Test
+    public void testExecuteWithValidArgumentsReturnsSuccessMessage() throws InvalidCommandException {
+        when(foodPool.getFood(APPLE_ID)).thenReturn(APPLE);
+        when(foodPool.getFood(BANANA_ID)).thenReturn(BANANA);
+        List<String> arguments = List.of(
+                "Healthy Meal", "Veggie",
+                "Apple", "Red", "1",
+                "Banana", "Yellow", "2"
+        );
 
-        Food secondFood = Food.builder(new FoodId("Banana", "Yellow"), 2, 2)
-                .build();
+        String result = createMealCommand.execute(arguments);
 
-        inMemoryFoodPool.addFood(firstFood);
-        inMemoryFoodPool.addFood(secondFood);
+        assertEquals(GlobalConstants.SUCCESSFULLY_CREATED_MEAL_MESSAGE, result,
+                "execute must return the creation success constant when arguments are valid");
     }
 
     @Test
-    public void testExecuteWithValidArguments() throws InvalidCommandException {
-        List<String> arguments = new ArrayList<>();
-        arguments.add("Healthy Meal");
-        arguments.add("Veggie");
-        arguments.add("Apple");
-        arguments.add("Red");
-        arguments.add("1");
-        arguments.add("Banana");
-        arguments.add("Yellow");
-        arguments.add("2");
+    public void testExecuteWithValidArgumentsDelegatesAddMealToPool() throws InvalidCommandException {
+        when(foodPool.getFood(APPLE_ID)).thenReturn(APPLE);
+        when(foodPool.getFood(BANANA_ID)).thenReturn(BANANA);
+        List<String> arguments = List.of(
+                "Healthy Meal", "Veggie",
+                "Apple", "Red", "1",
+                "Banana", "Yellow", "2"
+        );
 
-        MealId id = new MealId("Healthy Meal", "Veggie");
-        assertEquals(GlobalConstants.SUCCESSFULLY_CREATED_MEAL_MESSAGE, createMealCommand.execute(arguments));
-        assertNotNull(mealPool.getMeal(id));
-        assertEquals(2, mealPool.getMeal(id).getFoods().size());
+        createMealCommand.execute(arguments);
+        verify(mealPool).addMeal(any(Meal.class));
     }
 
     @Test
-    public void testExecuteWithInvalidNumberOfArguments() {
-        List<String> arguments = new ArrayList<>();
-        arguments.add("Healthy Meal");
-        arguments.add("Veggie");
-        arguments.add("Apple");
-        arguments.add("Red");
-        arguments.add("1");
-        arguments.add("Banana");
-        arguments.add("Yellow");
-        arguments.add("2");
-        arguments.add("Extra");
+    public void testExecuteWithInvalidArgumentCountThrows() {
+        List<String> arguments = List.of(
+                "Healthy Meal", "Veggie",
+                "Apple", "Red", "1",
+                "Banana", "Yellow", "2", "Extra"
+        );
 
-        assertThrows(InvalidCommandException.class, () -> createMealCommand.execute(arguments));
+        assertThrows(InvalidCommandException.class, () -> createMealCommand.execute(arguments),
+                "An argument count that does not satisfy the triplet constraint must throw InvalidCommandException");
     }
 }
-

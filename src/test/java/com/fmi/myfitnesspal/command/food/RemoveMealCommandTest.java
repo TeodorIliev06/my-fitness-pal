@@ -1,47 +1,65 @@
 package com.fmi.myfitnesspal.command.food;
 
+import com.fmi.myfitnesspal.constants.GlobalConstants;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
-import com.fmi.myfitnesspal.food.InMemoryFoodDiary;
-import com.fmi.myfitnesspal.food.EatingTime;
+import com.fmi.myfitnesspal.food.Food;
+import com.fmi.myfitnesspal.food.FoodId;
 import com.fmi.myfitnesspal.food.Meal;
 import com.fmi.myfitnesspal.food.MealId;
-import com.fmi.myfitnesspal.constants.GlobalConstants;
+import com.fmi.myfitnesspal.food.MealPool;
+import com.fmi.myfitnesspal.food.InMemoryMealPool;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.fmi.myfitnesspal.utility.DateHelper.DATE_FORMATTER;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public final class RemoveMealCommandTest {
+
     private RemoveMealCommand removeMealCommand;
-    private InMemoryFoodDiary foodDiary;
-    private LocalDate date;
+    private MealPool mealPool;
 
     @BeforeEach
     public void setUp() {
-        foodDiary = new InMemoryFoodDiary();
-        removeMealCommand = new RemoveMealCommand(foodDiary);
-        date = LocalDate.parse("12.03.2024", DATE_FORMATTER);
+        mealPool = new InMemoryMealPool();
+        removeMealCommand = new RemoveMealCommand(mealPool);
 
-        Meal meal = new Meal(new MealId("Healthy Meal", "Veggie"));
-        foodDiary.addMeal(date, EatingTime.BREAKFAST, meal);
+        Food apple = Food.builder(new FoodId("Apple", "Green"), 100, 52).build();
+        Meal healthyMeal = new Meal(new MealId("Healthy Meal", "Veggie"));
+        healthyMeal.addFoodPortion(apple, 1.0);
+        mealPool.addMeal(healthyMeal);
     }
 
     @Test
-    public void testExecuteWithValidArguments() throws InvalidCommandException {
+    public void testExecuteRemovesMealTemplateFromPool() throws InvalidCommandException {
+        List<String> arguments = List.of("Healthy Meal", "Veggie");
 
-        List<String> arguments = new ArrayList<>();
-        arguments.add("12.03.2024");
-        arguments.add("Breakfast");
-        arguments.add("Healthy Meal");
-        arguments.add("Veggie");
+        String result = removeMealCommand.execute(arguments);
 
-        assertEquals(GlobalConstants.SUCCESSFULLY_REMOVED_MEAL_MESSAGE, removeMealCommand.execute(arguments));
-        assertTrue(foodDiary.getFoodsByDateAndEatingTime(date, EatingTime.BREAKFAST).isEmpty());
+        assertEquals(GlobalConstants.SUCCESSFULLY_REMOVED_MEAL_MESSAGE, result,
+                "Execute must return the deletion success message");
+        assertTrue(mealPool.getAllMeals().isEmpty(),
+                "MealPool must be empty after the only template is deleted");
+    }
+
+    @Test
+    public void testExecuteWithNonExistingMealThrows() {
+        List<String> arguments = List.of("Ghost Meal", "Does Not Exist");
+
+        assertThrows(IllegalArgumentException.class,
+                () -> removeMealCommand.execute(arguments),
+                "Deleting a meal that does not exist in the pool must throw IllegalArgumentException");
+    }
+
+    @Test
+    public void testExecuteWithWrongArgumentCountThrows() {
+        List<String> arguments = List.of("Healthy Meal");
+
+        assertThrows(InvalidCommandException.class,
+                () -> removeMealCommand.execute(arguments),
+                "Execute must throw InvalidCommandException when the argument count is not exactly 2");
     }
 }

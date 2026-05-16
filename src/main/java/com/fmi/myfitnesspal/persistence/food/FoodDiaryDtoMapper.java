@@ -1,10 +1,6 @@
 package com.fmi.myfitnesspal.persistence.food;
 
-import com.fmi.myfitnesspal.food.Food;
 import com.fmi.myfitnesspal.food.DailyFoodEntry;
-import com.fmi.myfitnesspal.food.Meal;
-import com.fmi.myfitnesspal.food.MealId;
-import com.fmi.myfitnesspal.food.DailyMealEntry;
 
 import java.util.List;
 
@@ -32,46 +28,11 @@ public final class FoodDiaryDtoMapper {
         );
     }
 
-    public DailyMealEntryDto toDailyMealEntryDto(DailyMealEntry entry) {
-        List<FoodDto> foodDtos = entry.meal().getFoods().stream()
-                .map(foodDtoMapper::toDto)
-                .toList();
-
-        return new DailyMealEntryDto(
-                entry.consumptionDate(),
-                entry.eatingTime(),
-                entry.meal().getId().name(),
-                entry.meal().getId().description(),
-                foodDtos
-        );
-    }
-
-    public DailyMealEntry toDailyMealEntry(DailyMealEntryDto dto) {
-        MealId mealId = new MealId(dto.name(), dto.description());
-        Meal meal = new Meal(mealId);
-
-        dto.foods().stream()
-                .map(foodDtoMapper::toEntity)
-                .forEach(food -> addFoodWithSingleServing(meal, food));
-
-        return new DailyMealEntry(dto.date(), dto.eatingTime(), meal);
-    }
-
-    public FoodDiaryDto toDto(List<DailyFoodEntry> foodEntries, List<DailyMealEntry> mealEntries) {
+    public FoodDiaryDto toDto(List<DailyFoodEntry> foodEntries) {
         List<DailyFoodEntryDto> foodDtos = foodEntries.stream()
                 .map(this::toDailyFoodEntryDto)
                 .toList();
 
-        List<DailyMealEntryDto> mealDtos = mealEntries.stream()
-                .map(this::toDailyMealEntryDto)
-                .toList();
-
-        return new FoodDiaryDto(foodDtos, mealDtos);
-    }
-
-    /* Calories stored in the DTO are already scaled. Re-adding with servings=1.0
-       prevents double-multiplication when the Meal reconstructs the total. */
-    private void addFoodWithSingleServing(Meal targetMeal, Food food) {
-        targetMeal.addFood(food, 1.0);
+        return new FoodDiaryDto(foodDtos);
     }
 }

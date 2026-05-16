@@ -9,35 +9,35 @@ import java.util.List;
 public final class Meal {
 
     private final MealId id;
-    private final List<Food> foods;
+    private final List<FoodPortion> foodPortions;
 
     public Meal(MealId id) {
         this.id = id;
-        this.foods = new ArrayList<>();
+        this.foodPortions = new ArrayList<>();
     }
 
     public MealId getId() {
         return this.id;
     }
 
-    public List<Food> getFoods() {
-        return Collections.unmodifiableList(this.foods);
+    public List<FoodPortion> getFoodPortions() {
+        return Collections.unmodifiableList(this.foodPortions);
     }
 
-    public void addFood(Food food, double numberOfServings) {
-        this.foods.add(food.scaledBy(numberOfServings));
+    public void addFoodPortion(Food food, double servingsUsed) {
+        this.foodPortions.add(new FoodPortion(food, servingsUsed));
     }
 
-    public void removeFood(FoodId targetId) {
+    public void removeFoodPortion(FoodId targetId) {
         if (isMissing(targetId)) {
             throw new IllegalArgumentException(GlobalConstants.NOT_EXISTING_FOOD_IN_MEAL_MESSAGE);
         }
 
-        this.foods.removeIf(food -> food.getId().equals(targetId));
+        this.foodPortions.removeIf(foodPortion -> foodPortion.food().getId().equals(targetId));
     }
 
     private boolean isMissing(FoodId targetId) {
-        return this.foods.stream().noneMatch(food -> food.getId().equals(targetId));
+        return this.foodPortions.stream().noneMatch(i -> i.food().getId().equals(targetId));
     }
 
     @Override
@@ -45,9 +45,9 @@ public final class Meal {
         StringBuilder sb = new StringBuilder();
         sb.append("Meal consists of:");
         sb.append(System.lineSeparator());
-        for (Food food : this.foods) {
+        for (FoodPortion foodPortion : this.foodPortions) {
             sb.append("   ");
-            sb.append(food.toString());
+            sb.append(foodPortion.food().toString());
             sb.append(System.lineSeparator());
         }
 

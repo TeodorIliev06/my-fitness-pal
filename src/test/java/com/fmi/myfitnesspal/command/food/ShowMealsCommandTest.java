@@ -1,57 +1,58 @@
 package com.fmi.myfitnesspal.command.food;
 
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
-import com.fmi.myfitnesspal.food.InMemoryFoodDiary;
 import com.fmi.myfitnesspal.food.Meal;
 import com.fmi.myfitnesspal.food.MealId;
+import com.fmi.myfitnesspal.food.MealPool;
 import com.fmi.myfitnesspal.food.Food;
 import com.fmi.myfitnesspal.food.FoodId;
-import com.fmi.myfitnesspal.food.EatingTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.fmi.myfitnesspal.utility.DateHelper.DATE_FORMATTER;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
 public final class ShowMealsCommandTest {
 
+    private Meal breakfastMeal;
+
+    @Mock
+    private MealPool mealPool;
+
+    @InjectMocks
     private ShowMealsCommand showMealsCommand;
-    private InMemoryFoodDiary diary;
-    private LocalDate date;
 
     @BeforeEach
     public void setUp() {
-        diary = new InMemoryFoodDiary();
-        showMealsCommand = new ShowMealsCommand(diary);
-        date = LocalDate.parse("12.03.2024", DATE_FORMATTER);
+        Food eggs = Food.builder(new FoodId("Homemade", "Eggs"), 50, 70).build();
+        breakfastMeal = new Meal(new MealId("Breakfast", "eggs with bread"));
+        breakfastMeal.addFoodPortion(eggs, 2.0);
     }
 
     @Test
-    public void testExecuteWithValidArguments() throws InvalidCommandException {
-        Meal meal = new Meal(new MealId("Breakfast Meal", "eggs with bread"));
+    public void testExecuteShowsAvailableMealTemplates() throws InvalidCommandException {
+        when(mealPool.getAllMeals()).thenReturn(List.of(breakfastMeal));
 
-        Food firstFood = Food.builder(new FoodId("Homemade", "Eggs"), 1, 1)
-                        .build();
+        String result = showMealsCommand.execute(List.of());
 
-        Food secondFood = Food.builder(new FoodId("Homemade", "Bread"), 2, 2)
-                        .build();
-
-        meal.addFood(firstFood, 2.0);
-        meal.addFood(secondFood, 2.0);
-
-        diary.addMeal(date, EatingTime.BREAKFAST, meal);
-
-        List<String> arguments = new ArrayList<>();
-        arguments.add("12.03.2024");
-        arguments.add("Breakfast");
-
-        String expectedResult = meal.toString();
-
-        assertEquals(expectedResult, showMealsCommand.execute(arguments));
+        assertEquals(breakfastMeal.toString() + System.lineSeparator(), result,
+                "ShowMealsCommand must display each available meal template from the pool");
     }
 
+    @Test
+    public void testExecuteWithNoMealsReturnsEmptyString() throws InvalidCommandException {
+        when(mealPool.getAllMeals()).thenReturn(List.of());
+
+        String result = showMealsCommand.execute(List.of());
+
+        assertEquals("", result,
+                "ShowMealsCommand must return an empty string when no meal templates exist in the pool");
+    }
 }
