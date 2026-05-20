@@ -52,6 +52,7 @@ import com.fmi.myfitnesspal.food.RecipePool;
 import com.fmi.myfitnesspal.food.InMemoryRecipePool;
 import com.fmi.myfitnesspal.calorie.CalorieGoalHolder;
 import com.fmi.myfitnesspal.persistence.file.JsonPersistenceStoreFactory;
+import com.fmi.myfitnesspal.persistence.DataTransferable;
 import com.fmi.myfitnesspal.persistence.PersistenceStoreFactory;
 import com.fmi.myfitnesspal.persistence.food.FoodDiaryFactory;
 import com.fmi.myfitnesspal.persistence.food.FoodDiaryDtoMapper;
@@ -69,6 +70,8 @@ import com.fmi.myfitnesspal.user.UserSession;
 import com.fmi.myfitnesspal.user.UserPool;
 import com.fmi.myfitnesspal.water.WaterDiary;
 import com.fmi.myfitnesspal.water.InMemoryWaterDiary;
+import com.fmi.myfitnesspal.command.transfer.ImportCommand;
+import com.fmi.myfitnesspal.command.transfer.ExportCommand;
 import com.fmi.myfitnesspal.command.water.AddWaterCommand;
 import com.fmi.myfitnesspal.command.water.AddWaterPortionCommand;
 import com.fmi.myfitnesspal.command.water.GetWaterCommand;
@@ -148,11 +151,13 @@ public final class Main {
         ).create();
 
         UserAwareWaterDiary userAwareWaterDiary = new UserAwareWaterDiary(
-                waterDiaryFactory, USERS_ROOT_PATH, new InMemoryWaterDiary()
+                waterDiaryFactory, USERS_ROOT_PATH, new InMemoryWaterDiary(), SHOULD_STORE_WATER_IN_FILE
         );
         UserAwareFoodDiary userAwareFoodDiary = new UserAwareFoodDiary(
-                foodDiaryFactory, USERS_ROOT_PATH, new InMemoryFoodDiary()
+                foodDiaryFactory, USERS_ROOT_PATH, new InMemoryFoodDiary(), SHOULD_STORE_FOOD_IN_FILE
         );
+        List<DataTransferable> dataTransferTargets =
+                List.of(userAwareFoodDiary, userAwareWaterDiary);
         UserSession userSession = new UserSession(List.of(userAwareFoodDiary, userAwareWaterDiary));
 
         UserProfile guestProfile = new GuestUserProfileFactory().create();
@@ -164,7 +169,7 @@ public final class Main {
         fillRegistry(registry, userAwareWaterDiary, foodPool, userAwareFoodDiary,
                 mealPool, recipePool, exercisePool, exerciseDiary,
                 scanner, sliceMapper, barChartDisplayer, pieChartDisplayer,
-                calorieGoalHolder, userSession, userPool);
+                calorieGoalHolder, userSession, userPool, dataTransferTargets);
 
         Menu menu = new Menu(registry, scanner);
         menu.start();
@@ -178,7 +183,8 @@ public final class Main {
                                      NutritionSliceMapper sliceMapper,
                                      BarChartDisplayer barChartDisplayer, PieChartDisplayer pieChartDisplayer,
                                      CalorieGoalHolder calorieGoalHolder,
-                                     UserSession userSession, UserPool userPool) {
+                                     UserSession userSession, UserPool userPool,
+                                     List<DataTransferable> dataTransferTargets) {
         registry.addCommand(new AddWaterCommand(waterDiary));
         registry.addCommand(new AddWaterPortionCommand(waterDiary));
         registry.addCommand(new GetWaterCommand(waterDiary));
@@ -217,5 +223,7 @@ public final class Main {
         registry.addCommand(new ShowDailyFoodLogCommand(foodDiary));
         registry.addCommand(new SetCalorieGoalCommand(calorieGoalHolder));
         registry.addCommand(new CheckCalorieGoalCommand(foodDiary, calorieGoalHolder, barChartDisplayer));
+        registry.addCommand(new ImportCommand(dataTransferTargets));
+        registry.addCommand(new ExportCommand(dataTransferTargets));
     }
 }

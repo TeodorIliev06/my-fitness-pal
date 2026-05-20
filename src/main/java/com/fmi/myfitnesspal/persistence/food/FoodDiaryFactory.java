@@ -27,6 +27,32 @@ public final class FoodDiaryFactory extends AbstractRepositoryFactory {
         );
     }
 
+    public FoodDiary loadInMemoryFromFile(Path userDataDirectory) {
+        Path diaryFilePath = userDataDirectory.resolve(FOOD_DIARY_FILE_NAME);
+
+        ObjectPersistenceStore<FoodDiaryDto> store =
+                storeFactory.createObjectStore(diaryFilePath, FoodDiaryDto.class);
+        FoodDiary freshDiary = new InMemoryFoodDiary();
+        store.load().ifPresent(dto -> populateDiaryFrom(freshDiary, dto));
+
+        return freshDiary;
+    }
+
+    public void saveToFile(Path userDataDirectory, FoodDiary sourceDiary) {
+        Path diaryFilePath = userDataDirectory.resolve(FOOD_DIARY_FILE_NAME);
+
+        ObjectPersistenceStore<FoodDiaryDto> persistenceStore =
+                storeFactory.createObjectStore(diaryFilePath, FoodDiaryDto.class);
+        persistenceStore.save(foodDiaryDtoMapper.toDto(sourceDiary.getAllDailyFoodEntries()));
+    }
+
+    private void populateDiaryFrom(FoodDiary targetDiary, FoodDiaryDto dto) {
+        dto.foods().stream()
+                .map(foodDiaryDtoMapper::toDailyFoodEntry)
+                .forEach(entry -> targetDiary.addFood(
+                        entry.consumptionDate(), entry.eatingTime(), entry.food(), 1.0));
+    }
+
     private FoodDiaryFileRepository buildPersistentFoodDiaryIn(Path userDataDirectory) {
         Path foodDiaryFilePath = userDataDirectory.resolve(FOOD_DIARY_FILE_NAME);
         ObjectPersistenceStore<FoodDiaryDto> persistenceStore =

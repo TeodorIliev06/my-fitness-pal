@@ -38,4 +38,9 @@ public final class GlobalConstants {
 
     public static final String EMPTY_OPTIONAL_VALUE = "no";
     public static final String EXIT_COMMAND = "exit";
+
+    public static final String SUCCESSFULLY_IMPORTED_MESSAGE = "Data imported successfully!";
+    public static final String SUCCESSFULLY_EXPORTED_MESSAGE = "Data exported successfully!";
+    public static final String IN_MEMORY_MODE_REQUIRED_MESSAGE =
+            "Import/Export is only available in in-memory mode!";
 }
