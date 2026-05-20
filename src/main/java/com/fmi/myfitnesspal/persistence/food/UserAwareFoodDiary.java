@@ -9,31 +9,56 @@ import com.fmi.myfitnesspal.food.FoodPortion;
 import com.fmi.myfitnesspal.food.FoodDiary;
 import com.fmi.myfitnesspal.food.FoodId;
 import com.fmi.myfitnesspal.food.WeeklyNutritionSummary;
+import com.fmi.myfitnesspal.persistence.DataTransferable;
 import com.fmi.myfitnesspal.user.UserAware;
 import com.fmi.myfitnesspal.user.UserProfile;
+import com.fmi.myfitnesspal.constants.GlobalConstants;
+import com.fmi.myfitnesspal.exception.InvalidCommandException;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 
-public final class UserAwareFoodDiary implements FoodDiary, UserAware {
+public final class UserAwareFoodDiary implements FoodDiary, UserAware, DataTransferable {
 
     private final FoodDiaryFactory foodDiaryFactory;
     private final Path usersRootPath;
+    private final boolean persistToFile;
     private FoodDiary activeDiary;
+    private Path currentUserDataPath;
 
     public UserAwareFoodDiary(FoodDiaryFactory foodDiaryFactory,
                               Path usersRootPath,
-                              FoodDiary guestDiary) {
+                              FoodDiary guestDiary,
+                              boolean persistToFile) {
         this.foodDiaryFactory = foodDiaryFactory;
         this.usersRootPath = usersRootPath;
         this.activeDiary = guestDiary;
+        this.persistToFile = persistToFile;
     }
 
     @Override
     public void onUserSwitched(UserProfile activeProfile) {
-        Path userDataPath = usersRootPath.resolve(activeProfile.userId().username());
-        activeDiary = foodDiaryFactory.createIn(userDataPath);
+        currentUserDataPath = usersRootPath.resolve(activeProfile.userId().username());
+        activeDiary = foodDiaryFactory.createIn(currentUserDataPath);
+    }
+
+    @Override
+    public void importFromUserFiles() throws InvalidCommandException {
+        validateInMemoryMode();
+        activeDiary = foodDiaryFactory.loadInMemoryFromFile(currentUserDataPath);
+    }
+
+    @Override
+    public void exportToUserFiles() throws InvalidCommandException {
+        validateInMemoryMode();
+        foodDiaryFactory.saveToFile(currentUserDataPath, activeDiary);
+    }
+
+    private void validateInMemoryMode() throws InvalidCommandException {
+        if (persistToFile) {
+            throw new InvalidCommandException(GlobalConstants.IN_MEMORY_MODE_REQUIRED_MESSAGE);
+        }
     }
 
     @Override

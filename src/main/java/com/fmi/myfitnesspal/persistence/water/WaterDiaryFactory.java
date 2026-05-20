@@ -27,6 +27,24 @@ public final class WaterDiaryFactory extends AbstractRepositoryFactory {
         );
     }
 
+    public WaterDiary loadInMemoryFromFile(Path userDataDirectory) {
+        Path diaryFilePath = userDataDirectory.resolve(WATER_DIARY_FILE_NAME);
+        PersistenceStore<DailyWaterDto> store =
+                storeFactory.createListStore(diaryFilePath, DailyWaterDto.class);
+        WaterDiary freshDiary = new InMemoryWaterDiary();
+        store.load().stream()
+                .map(waterDtoMapper::toEntity)
+                .forEach(entry -> freshDiary.addWater(entry.consumptionDate(), entry.millilitres()));
+        return freshDiary;
+    }
+
+    public void saveToFile(Path userDataDirectory, WaterDiary sourceDiary) {
+        Path diaryFilePath = userDataDirectory.resolve(WATER_DIARY_FILE_NAME);
+        PersistenceStore<DailyWaterDto> store =
+                storeFactory.createListStore(diaryFilePath, DailyWaterDto.class);
+        store.save(waterDtoMapper.toDtos(sourceDiary.getAllDailyWaterEntries()));
+    }
+
     private WaterFileRepository buildPersistentWaterDiaryIn(Path userDataDirectory) {
         Path waterDiaryFilePath = userDataDirectory.resolve(WATER_DIARY_FILE_NAME);
         PersistenceStore<DailyWaterDto> persistenceStore =

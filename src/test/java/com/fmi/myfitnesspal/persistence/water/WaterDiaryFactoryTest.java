@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -106,6 +107,29 @@ public final class WaterDiaryFactoryTest {
 
         assertEquals(Portion.P_500.getQuantity(), createdDiary.getDailyWater(CONSUMPTION_DATE),
                 "The WaterFileRepository returned by the factory should correctly track added water");
+    }
+
+    @Test
+    void testLoadInMemoryFromFileReturnsEmptyDiaryWhenFileDoesNotExist() {
+        when(storeFactoryMock.createListStore(any(), eq(DailyWaterDto.class))).thenReturn(waterStoreMock);
+        when(waterStoreMock.load()).thenReturn(List.of());
+
+        WaterDiaryFactory factory = buildFactory(false);
+        WaterDiary loadedDiary = factory.loadInMemoryFromFile(tempDirectory);
+
+        assertTrue(loadedDiary.getAllDailyWaterEntries().isEmpty(),
+                "loadInMemoryFromFile must return an empty diary when no file exists for the user");
+    }
+
+    @Test
+    void testSaveToFileInvokesStoreWithMappedEntries() {
+        when(storeFactoryMock.createListStore(any(), eq(DailyWaterDto.class))).thenReturn(waterStoreMock);
+
+        WaterDiary sourceDiary = new InMemoryWaterDiary();
+        WaterDiaryFactory factory = buildFactory(false);
+        factory.saveToFile(tempDirectory, sourceDiary);
+
+        verify(waterStoreMock).save(any());
     }
 
     private WaterDiaryFactory buildFactory(boolean persistToFile) {

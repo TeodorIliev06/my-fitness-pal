@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -100,6 +101,29 @@ public final class FoodDiaryFactoryTest {
         List<Food> storedFoods = createdDiary.getFoodsByDateAndEatingTime(CONSUMPTION_DATE, EATING_TIME);
         assertEquals(1, storedFoods.size(),
                 "The created diary should store and return the food that was added");
+    }
+
+    @Test
+    void testLoadInMemoryFromFileReturnsEmptyDiaryWhenFileDoesNotExist() {
+        when(storeFactoryMock.createObjectStore(any(), eq(FoodDiaryDto.class))).thenReturn(diaryStoreMock);
+        when(diaryStoreMock.load()).thenReturn(Optional.empty());
+
+        FoodDiaryFactory factory = buildFactory(false);
+        FoodDiary loadedDiary = factory.loadInMemoryFromFile(tempDirectory);
+
+        assertTrue(loadedDiary.getAllDailyFoodEntries().isEmpty(),
+                "loadInMemoryFromFile must return an empty diary when no file exists for the user");
+    }
+
+    @Test
+    void testSaveToFileInvokesStoreWithMappedEntries() {
+        when(storeFactoryMock.createObjectStore(any(), eq(FoodDiaryDto.class))).thenReturn(diaryStoreMock);
+
+        FoodDiary sourceDiary = new InMemoryFoodDiary();
+        FoodDiaryFactory factory = buildFactory(false);
+        factory.saveToFile(tempDirectory, sourceDiary);
+
+        verify(diaryStoreMock).save(any(FoodDiaryDto.class));
     }
 
     private FoodDiaryFactory buildFactory(boolean persistToFile) {
