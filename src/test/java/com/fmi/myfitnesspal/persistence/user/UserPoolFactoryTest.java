@@ -8,6 +8,7 @@ import com.fmi.myfitnesspal.user.User;
 import com.fmi.myfitnesspal.user.UserId;
 import com.fmi.myfitnesspal.user.UserPool;
 import com.fmi.myfitnesspal.user.UserProfile;
+import com.fmi.myfitnesspal.user.PasswordHash;
 import com.fmi.myfitnesspal.user.country.Country;
 import com.fmi.myfitnesspal.user.height.Height;
 import com.fmi.myfitnesspal.user.height.LengthMeasurementUnit;
@@ -41,7 +42,7 @@ public final class UserPoolFactoryTest {
     @Mock
     private PersistenceStoreFactory storeFactoryMock;
     @Mock
-    private PersistenceStore<String> usernameStoreMock;
+    private PersistenceStore<UserCredentialsDto> credentialsStoreMock;
     @Mock
     private ObjectPersistenceStore<UserProfileDto> profileStoreMock;
 
@@ -66,8 +67,8 @@ public final class UserPoolFactoryTest {
 
     @Test
     void testCreateWithPersistenceReturnsUserFileRepository() {
-        when(storeFactoryMock.createListStore(any(), eq(String.class))).thenReturn(usernameStoreMock);
-        when(usernameStoreMock.load()).thenReturn(List.of());
+        when(storeFactoryMock.createListStore(any(), eq(UserCredentialsDto.class))).thenReturn(credentialsStoreMock);
+        when(credentialsStoreMock.load()).thenReturn(List.of());
 
         UserPoolFactory factory = buildFactory(true);
 
@@ -79,8 +80,8 @@ public final class UserPoolFactoryTest {
 
     @Test
     void testCreateWithPersistenceAndNonExistingFileStartsWithEmptyPool() {
-        when(storeFactoryMock.createListStore(any(), eq(String.class))).thenReturn(usernameStoreMock);
-        when(usernameStoreMock.load()).thenReturn(List.of());
+        when(storeFactoryMock.createListStore(any(), eq(UserCredentialsDto.class))).thenReturn(credentialsStoreMock);
+        when(credentialsStoreMock.load()).thenReturn(List.of());
 
         UserPoolFactory factory = buildFactory(true);
 
@@ -93,8 +94,8 @@ public final class UserPoolFactoryTest {
     @Test
     void testCreateWithPersistenceReturnsCorrectPool() {
         // username list store is created on initialization
-        when(storeFactoryMock.createListStore(any(), eq(String.class))).thenReturn(usernameStoreMock);
-        when(usernameStoreMock.load()).thenReturn(List.of());
+        when(storeFactoryMock.createListStore(any(), eq(UserCredentialsDto.class))).thenReturn(credentialsStoreMock);
+        when(credentialsStoreMock.load()).thenReturn(List.of());
 
         when(storeFactoryMock.createObjectStore(any(), eq(UserProfileDto.class))).thenReturn(profileStoreMock);
 
@@ -126,6 +127,6 @@ public final class UserPoolFactoryTest {
                 new Height(170, LengthMeasurementUnit.CENTIMETER),
                 new Weight(70, WeightMeasurementUnit.KILOGRAM),
                 22, Sex.MALE, Country.BULGARIA);
-        return new UserProfile(userId, user);
+        return new UserProfile(userId, user, PasswordHash.sentinel());
     }
 }

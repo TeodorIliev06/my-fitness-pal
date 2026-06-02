@@ -2,6 +2,7 @@ package com.fmi.myfitnesspal.command.user;
 
 import com.fmi.myfitnesspal.command.ExecutableCommand;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
+import com.fmi.myfitnesspal.user.PasswordHash;
 import com.fmi.myfitnesspal.user.User;
 import com.fmi.myfitnesspal.user.UserId;
 import com.fmi.myfitnesspal.user.UserPool;
@@ -26,7 +27,7 @@ import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgu
 public final class CreateUserCommand implements ExecutableCommand {
 
     private static final String COMMAND_NAME = "create-user";
-    private static final int ARGUMENTS_COUNT = 8;
+    private static final int ARGUMENTS_COUNT = 9;
 
     private final UserPool userPool;
 
@@ -57,23 +58,25 @@ public final class CreateUserCommand implements ExecutableCommand {
     @Override
     public String getHelp() {
         return "Usage: " + COMMAND_NAME
-                + " <username> <height-value> <height-unit>"
+                + " <username> <password> <height-value> <height-unit>"
                 + " <weight-value> <weight-unit> <age> <sex> <country>";
     }
 
     private UserProfile parseUserProfile(List<String> arguments) throws InvalidCommandException {
         UserId id = parseUserId(arguments.get(0));
-        int heightValue = parseInteger(arguments.get(1));
-        LengthMeasurementUnit heightUnit = parseLengthMeasurementUnit(arguments.get(2));
-        int weightValue = parseInteger(arguments.get(3));
-        WeightMeasurementUnit weightUnit = parseWeightMeasurementUnit(arguments.get(4));
-        int age = parseInteger(arguments.get(5));
-        Sex sex = parseSex(arguments.get(6));
-        Country country = parseCountry(arguments.get(7));
+        String rawPassword = arguments.get(1);
+        int heightValue = parseInteger(arguments.get(2));
+        LengthMeasurementUnit heightUnit = parseLengthMeasurementUnit(arguments.get(3));
+        int weightValue = parseInteger(arguments.get(4));
+        WeightMeasurementUnit weightUnit = parseWeightMeasurementUnit(arguments.get(5));
+        int age = parseInteger(arguments.get(6));
+        Sex sex = parseSex(arguments.get(7));
+        Country country = parseCountry(arguments.get(8));
 
+        PasswordHash passwordHash = PasswordHash.of(rawPassword);
         Height height = new Height(heightValue, heightUnit);
         Weight weight = new Weight(weightValue, weightUnit);
         User user = new User(height, weight, age, sex, country);
-        return new UserProfile(id, user);
+        return new UserProfile(id, user, passwordHash);
     }
 }

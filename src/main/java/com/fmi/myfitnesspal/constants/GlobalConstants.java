@@ -43,4 +43,6 @@ public final class GlobalConstants {
     public static final String SUCCESSFULLY_EXPORTED_MESSAGE = "Data exported successfully!";
     public static final String IN_MEMORY_MODE_REQUIRED_MESSAGE =
             "Import/Export is only available in in-memory mode!";
+
+    public static final String INVALID_PASSWORD_MESSAGE = "Invalid password";
 }

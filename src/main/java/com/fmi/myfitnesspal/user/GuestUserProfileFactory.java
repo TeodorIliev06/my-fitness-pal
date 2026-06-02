@@ -21,6 +21,6 @@ public final class GuestUserProfileFactory {
         Height height = new Height(GUEST_HEIGHT_CM, LengthMeasurementUnit.CENTIMETER);
         Weight weight = new Weight(GUEST_WEIGHT_KG, WeightMeasurementUnit.KILOGRAM);
         User guestUser = new User(height, weight, GUEST_AGE, GUEST_SEX, GUEST_COUNTRY);
-        return new UserProfile(guestId, guestUser);
+        return new UserProfile(guestId, guestUser, PasswordHash.sentinel());
     }
 }

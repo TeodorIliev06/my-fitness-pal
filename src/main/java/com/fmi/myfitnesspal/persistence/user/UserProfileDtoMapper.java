@@ -4,8 +4,10 @@ import com.fmi.myfitnesspal.persistence.PersistenceMapper;
 import com.fmi.myfitnesspal.user.User;
 import com.fmi.myfitnesspal.user.UserId;
 import com.fmi.myfitnesspal.user.UserProfile;
+import com.fmi.myfitnesspal.user.PasswordHash;
 
 public final class UserProfileDtoMapper implements PersistenceMapper<UserProfile, UserProfileDto> {
+
     @Override
     public UserProfileDto toDto(UserProfile userProfile) {
         return new UserProfileDto(
@@ -16,6 +18,10 @@ public final class UserProfileDtoMapper implements PersistenceMapper<UserProfile
 
     @Override
     public UserProfile toEntity(UserProfileDto userProfileDto) {
+        return toEntity(userProfileDto, PasswordHash.sentinel());
+    }
+
+    public UserProfile toEntity(UserProfileDto userProfileDto, PasswordHash passwordHash) {
         UserId id = new UserId(userProfileDto.userId().username());
         User user = new User(
                 userProfileDto.userData().height(),
@@ -23,7 +29,6 @@ public final class UserProfileDtoMapper implements PersistenceMapper<UserProfile
                 userProfileDto.userData().age(),
                 userProfileDto.userData().sex(),
                 userProfileDto.userData().country());
-
-        return new UserProfile(id, user);
+        return new UserProfile(id, user, passwordHash);
     }
 }

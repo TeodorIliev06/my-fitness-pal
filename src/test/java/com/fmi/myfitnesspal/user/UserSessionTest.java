@@ -97,6 +97,6 @@ public final class UserSessionTest {
         Height height = new Height(170, LengthMeasurementUnit.CENTIMETER);
         Weight weight = new Weight(70, WeightMeasurementUnit.KILOGRAM);
         User user = new User(height, weight, 22, Sex.MALE, Country.BULGARIA);
-        return new UserProfile(userId, user);
+        return new UserProfile(userId, user, PasswordHash.sentinel());
     }
 }

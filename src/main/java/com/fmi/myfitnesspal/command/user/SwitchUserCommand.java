@@ -1,6 +1,7 @@
 package com.fmi.myfitnesspal.command.user;
 
 import com.fmi.myfitnesspal.command.ExecutableCommand;
+import com.fmi.myfitnesspal.constants.GlobalConstants;
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
 import com.fmi.myfitnesspal.user.UserId;
 import com.fmi.myfitnesspal.user.UserPool;
@@ -14,7 +15,7 @@ import static com.fmi.myfitnesspal.command.utility.CommandUtilities.validateArgu
 public final class SwitchUserCommand implements ExecutableCommand {
 
     private static final String COMMAND_NAME = "switch-user";
-    private static final int ARGUMENTS_COUNT = 1;
+    private static final int ARGUMENTS_COUNT = 2;
 
     private final UserPool userPool;
     private final UserSession userSession;
@@ -28,11 +29,16 @@ public final class SwitchUserCommand implements ExecutableCommand {
     public String execute(List<String> arguments) throws InvalidCommandException {
         validateArgumentsCount(arguments, ARGUMENTS_COUNT);
         String username = arguments.get(0);
+        String rawPassword = arguments.get(1);
         UserId userId = new UserId(username);
 
         UserProfile targetProfile = userPool.findById(userId)
                 .orElseThrow(() -> new InvalidCommandException(
                         "User " + username + " does not exist"));
+
+        if (!targetProfile.passwordHash().matches(rawPassword)) {
+            throw new InvalidCommandException(GlobalConstants.INVALID_PASSWORD_MESSAGE);
+        }
 
         userSession.switchTo(targetProfile);
         return "You are now " + username;
@@ -45,6 +51,6 @@ public final class SwitchUserCommand implements ExecutableCommand {
 
     @Override
     public String getHelp() {
-        return "Usage: " + COMMAND_NAME + " <username>";
+        return "Usage: " + COMMAND_NAME + " <username> <password>";
     }
 }

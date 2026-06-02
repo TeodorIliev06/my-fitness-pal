@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,7 +26,7 @@ import static org.mockito.Mockito.when;
 public final class CreateUserCommandTest {
 
     private static final List<String> VALID_ARGUMENTS =
-            List.of("Ivan", "170", "CENTIMETER", "70", "KILOGRAM", "22", "MALE", "BULGARIA");
+            List.of("Ivan", "password", "170", "CENTIMETER", "70", "KILOGRAM", "22", "MALE", "BULGARIA");
 
     @Mock
     private UserPool userPool;
@@ -60,6 +61,21 @@ public final class CreateUserCommandTest {
     }
 
     @Test
+    void testExecuteHashesPasswordBeforeStoringUser() throws InvalidCommandException {
+        when(userPool.contains(any(UserId.class))).thenReturn(false);
+
+        command.execute(VALID_ARGUMENTS);
+
+        ArgumentCaptor<UserProfile> captor = ArgumentCaptor.forClass(UserProfile.class);
+        verify(userPool).addUser(captor.capture());
+        String storedHash = captor.getValue().passwordHash().value();
+        assertNotEquals("password", storedHash,
+                "The stored password hash must not equal the raw password");
+        assertTrue(storedHash.startsWith("$2a$"),
+                "The stored hash should be a BCrypt hash (starts with $2a$)");
+    }
+
+    @Test
     void testExecuteThrowsWhenUserAlreadyExists() {
         when(userPool.contains(any(UserId.class))).thenReturn(true);
 
@@ -77,7 +93,7 @@ public final class CreateUserCommandTest {
 
         assertThrows(InvalidCommandException.class,
                 () -> command.execute(tooFewArguments),
-                "Should throw when fewer than 8 arguments are provided");
+                "Should throw when fewer than 9 arguments are provided");
     }
 
     @Test
@@ -103,7 +119,7 @@ public final class CreateUserCommandTest {
     @Test
     void testExecuteThrowsWhenUsernameIsBlank() {
         List<String> blankUsernameArguments =
-                List.of("   ", "170", "CENTIMETER", "70", "KILOGRAM", "22", "MALE", "BULGARIA");
+                List.of("   ", "password", "170", "CENTIMETER", "70", "KILOGRAM", "22", "MALE", "BULGARIA");
 
         assertThrows(InvalidCommandException.class,
                 () -> command.execute(blankUsernameArguments),
@@ -113,7 +129,7 @@ public final class CreateUserCommandTest {
     @Test
     void testExecuteThrowsWhenHeightUnitIsInvalid() {
         List<String> badHeightUnit =
-                List.of("Ivan", "170", "FURLONGS", "70", "KILOGRAM", "22", "MALE", "BULGARIA");
+                List.of("Ivan", "password", "170", "FURLONGS", "70", "KILOGRAM", "22", "MALE", "BULGARIA");
 
         assertThrows(InvalidCommandException.class,
                 () -> command.execute(badHeightUnit),
@@ -123,7 +139,7 @@ public final class CreateUserCommandTest {
     @Test
     void testExecuteThrowsWhenWeightUnitIsInvalid() {
         List<String> badWeightUnit =
-                List.of("Ivan", "170", "CENTIMETER", "70", "TONNES", "22", "MALE", "BULGARIA");
+                List.of("Ivan", "password", "170", "CENTIMETER", "70", "TONNES", "22", "MALE", "BULGARIA");
 
         assertThrows(InvalidCommandException.class,
                 () -> command.execute(badWeightUnit),
@@ -133,7 +149,7 @@ public final class CreateUserCommandTest {
     @Test
     void testExecuteThrowsWhenCountryIsInvalid() {
         List<String> badCountry =
-                List.of("Ivan", "170", "CENTIMETER", "70", "KILOGRAM", "22", "MALE", "MARS");
+                List.of("Ivan", "password", "170", "CENTIMETER", "70", "KILOGRAM", "22", "MALE", "MARS");
 
         assertThrows(InvalidCommandException.class,
                 () -> command.execute(badCountry),

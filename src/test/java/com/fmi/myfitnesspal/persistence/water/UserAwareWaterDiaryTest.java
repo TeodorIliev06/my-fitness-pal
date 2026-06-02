@@ -1,6 +1,7 @@
 package com.fmi.myfitnesspal.persistence.water;
 
 import com.fmi.myfitnesspal.exception.InvalidCommandException;
+import com.fmi.myfitnesspal.user.PasswordHash;
 import com.fmi.myfitnesspal.water.WaterDiary;
 import com.fmi.myfitnesspal.user.UserId;
 import com.fmi.myfitnesspal.user.UserProfile;
@@ -22,7 +23,7 @@ public final class UserAwareWaterDiaryTest {
 
     private static final Path USERS_ROOT = Path.of("users");
     private static final UserProfile TEST_PROFILE =
-            new UserProfile(new UserId("ivan"), null);
+            new UserProfile(new UserId("ivan"), null, PasswordHash.sentinel());
 
     @Mock
     private WaterDiaryFactory waterDiaryFactoryMock;

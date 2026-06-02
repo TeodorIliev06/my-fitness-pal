@@ -1,5 +1,6 @@
 package com.fmi.myfitnesspal.persistence.user;
 
+import com.fmi.myfitnesspal.user.PasswordHash;
 import com.fmi.myfitnesspal.user.User;
 import com.fmi.myfitnesspal.user.UserId;
 import com.fmi.myfitnesspal.user.UserProfile;
@@ -53,20 +54,42 @@ public final class UserProfileDtoMapperTest {
     }
 
     @Test
-    void testToEntityMapsUserIdCorrectly() {
+    void testToDtoDoesNotPersistPasswordHashInDto() {
+        UserProfile userProfile = createUserProfile();
+
+        UserProfileDto dto = mapper.toDto(userProfile);
+
+        assertEquals(2, UserProfileDto.class.getRecordComponents().length,
+                "UserProfileDto must have exactly 2 components (userId, userData) — no password hash");
+    }
+
+    @Test
+    void testToEntitySingleArgUsesSentinel() {
         UserProfileDto dto = createUserProfileDto();
 
         UserProfile entity = mapper.toEntity(dto);
+
+        assertEquals(entity.passwordHash(), PasswordHash.sentinel(),
+                "Single-arg toEntity should assign a sentinel hash (never matches any real password)");
+    }
+
+    @Test
+    void testToEntityWithHashMapsUserIdCorrectly() {
+        UserProfileDto dto = createUserProfileDto();
+        PasswordHash hash = PasswordHash.sentinel();
+
+        UserProfile entity = mapper.toEntity(dto, hash);
 
         assertEquals(USER_ID.username(), entity.userId().username(),
                 "toEntity should map the UserId username field correctly");
     }
 
     @Test
-    void testToEntityMapsUserDataCorrectly() {
+    void testToEntityWithHashMapsUserDataCorrectly() {
         UserProfileDto dto = createUserProfileDto();
+        PasswordHash hash = PasswordHash.sentinel();
 
-        UserProfile entity = mapper.toEntity(dto);
+        UserProfile entity = mapper.toEntity(dto, hash);
 
         assertEquals(HEIGHT, entity.userData().height(),
                 "toEntity should map the user's height correctly");
@@ -78,6 +101,17 @@ public final class UserProfileDtoMapperTest {
                 "toEntity should map the user's sex correctly");
         assertEquals(COUNTRY, entity.userData().country(),
                 "toEntity should map the user's country correctly");
+    }
+
+    @Test
+    void testToEntityWithHashPreservesProvidedHash() {
+        UserProfileDto dto = createUserProfileDto();
+        PasswordHash expectedHash = PasswordHash.fromStored("$2a$10$storedTestHash");
+
+        UserProfile entity = mapper.toEntity(dto, expectedHash);
+
+        assertEquals(expectedHash, entity.passwordHash(),
+                "toEntity(dto, hash) must set exactly the provided PasswordHash on the returned profile");
     }
 
     @Test
@@ -94,7 +128,7 @@ public final class UserProfileDtoMapperTest {
 
     private static UserProfile createUserProfile() {
         User user = new User(HEIGHT, WEIGHT, AGE, SEX, COUNTRY);
-        return new UserProfile(USER_ID, user);
+        return new UserProfile(USER_ID, user, PasswordHash.sentinel());
     }
 
     private static UserProfileDto createUserProfileDto() {

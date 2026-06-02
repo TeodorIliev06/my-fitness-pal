@@ -6,6 +6,7 @@ import com.fmi.myfitnesspal.persistence.file.PersistenceStore;
 import com.fmi.myfitnesspal.user.UserId;
 import com.fmi.myfitnesspal.user.UserPool;
 import com.fmi.myfitnesspal.user.UserProfile;
+import com.fmi.myfitnesspal.user.PasswordHash;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -20,27 +21,26 @@ public final class UserFileRepository implements UserPool {
 
     private final UserPool userPool;
     private final UserProfileDtoMapper userProfileDtoMapper;
-    private final PersistenceStore<String> usernamesStore;
+    private final PersistenceStore<UserCredentialsDto> credentialsStore;
     private final PersistenceStoreFactory storeFactory;
     private final Path usersRootPath;
 
     public UserFileRepository(UserPool userPool,
                               UserProfileDtoMapper userProfileDtoMapper,
-                              PersistenceStore<String> usernamesStore,
+                              PersistenceStore<UserCredentialsDto> credentialsStore,
                               PersistenceStoreFactory storeFactory,
                               Path usersRootPath) {
         this.userPool = userPool;
         this.userProfileDtoMapper = userProfileDtoMapper;
-        this.usernamesStore = usernamesStore;
+        this.credentialsStore = credentialsStore;
         this.storeFactory = storeFactory;
         this.usersRootPath = usersRootPath;
     }
 
     void loadInitialState() {
-        usernamesStore.load()
+        credentialsStore.load()
                 .stream()
-                .map(this::loadProfileFor)
-                .map(userProfileDtoMapper::toEntity)
+                .map(this::assembleProfileFrom)
                 .forEach(userPool::addUser);
     }
 
@@ -49,7 +49,7 @@ public final class UserFileRepository implements UserPool {
         userPool.addUser(userToAdd);
 
         persistProfile(userToAdd);
-        persistUsernames();
+        persistCredentials();
     }
 
     @Override
@@ -67,6 +67,13 @@ public final class UserFileRepository implements UserPool {
         return userPool.getAllUserProfiles();
     }
 
+    // Combines the credentials entry (username + hash) with the per-user bio file.
+    private UserProfile assembleProfileFrom(UserCredentialsDto credentials) {
+        UserProfileDto bioDto = loadProfileFor(credentials.username());
+        PasswordHash passwordHash = PasswordHash.fromStored(credentials.passwordHash());
+        return userProfileDtoMapper.toEntity(bioDto, passwordHash);
+    }
+
     private UserProfileDto loadProfileFor(String username) {
         return profileStoreFor(username)
                 .load()
@@ -81,12 +88,15 @@ public final class UserFileRepository implements UserPool {
         profileStoreFor(username).save(dto);
     }
 
-    private void persistUsernames() {
-        List<String> usernames = userPool.getAllUserProfiles()
+    private void persistCredentials() {
+        List<UserCredentialsDto> credentials = userPool.getAllUserProfiles()
                 .stream()
-                .map(profile -> profile.userId().username())
+                .map(profile -> new UserCredentialsDto(
+                        profile.userId().username(),
+                        profile.passwordHash().value()))
                 .toList();
-        usernamesStore.save(usernames);
+
+        credentialsStore.save(credentials);
     }
 
     // Creating a JsonObjectPersistence here is intentional: this repository

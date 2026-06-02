@@ -33,11 +33,11 @@ public final class UserPoolFactory extends AbstractRepositoryFactory {
 
     private UserFileRepository buildPersistentUserPool() {
         Path usersFilePath = usersRootPath.resolve(USERS_FILE_NAME);
-        PersistenceStore<String> usernamesStore =
-                storeFactory.createListStore(usersFilePath, String.class);
+        PersistenceStore<UserCredentialsDto> credentialsStore =
+                storeFactory.createListStore(usersFilePath, UserCredentialsDto.class);
 
         UserFileRepository repository = new UserFileRepository(
-                new InMemoryUserPool(), userProfileDtoMapper, usernamesStore,
+                new InMemoryUserPool(), userProfileDtoMapper, credentialsStore,
                 storeFactory, usersRootPath);
         repository.loadInitialState();
         return repository;
