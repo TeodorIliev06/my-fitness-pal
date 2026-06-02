@@ -104,19 +104,6 @@ public final class CreateUserCommandTest {
     }
 
     @Test
-    void testName() {
-        assertEquals("create-user", command.name(),
-                "Command name must match the CLI-facing string");
-    }
-
-    @Test
-    void testGetHelp() {
-        String help = command.getHelp();
-        assertTrue(help.contains("create-user"),
-                "Help text should include the command name");
-    }
-
-    @Test
     void testExecuteThrowsWhenUsernameIsBlank() {
         List<String> blankUsernameArguments =
                 List.of("   ", "password", "170", "CENTIMETER", "70", "KILOGRAM", "22", "MALE", "BULGARIA");

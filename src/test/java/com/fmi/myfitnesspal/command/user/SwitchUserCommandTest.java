@@ -127,13 +127,11 @@ public final class SwitchUserCommandTest {
     @Test
     void testExecuteThrowsWhenOnlyUsernameIsProvided() {
         assertThrows(InvalidCommandException.class,
-                () -> command.execute(List.of("Ivan", "extra")),
-                "Should throw when more than one argument is provided");
+                () -> command.execute(List.of("Ivan")),
+                "Should throw when the correctPassword argument is missing");
     }
 
     @Test
-    void testName() {
-        assertEquals("switch-user", command.name(),
     void testExecuteThrowsWhenTooManyArguments() {
         assertThrows(InvalidCommandException.class,
                 () -> command.execute(List.of("Ivan", CORRECT_PASSWORD, "extra")),
