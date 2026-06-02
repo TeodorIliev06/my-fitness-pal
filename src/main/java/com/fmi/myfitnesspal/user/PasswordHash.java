@@ -2,17 +2,6 @@ package com.fmi.myfitnesspal.user;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-/**
- * Value object wrapping a BCrypt-hashed password.
- *
- * Not a record intentionally: records expose all components in toString(),
- * which would leak the hash value to logs. This class overrides toString()
- * to return a safe placeholder.
- *
- * equals() and hashCode() are defined on the stored value so that two
- * PasswordHash objects carrying the same BCrypt string are considered equal
- * (required for UserProfile record equality to work correctly in the pool).
- */
 public final class PasswordHash {
 
     private static final String SENTINEL_VALUE = "";
@@ -31,10 +20,6 @@ public final class PasswordHash {
         return new PasswordHash(storedHash);
     }
 
-    /**
-     * Returns a sentinel hash that never matches any real password.
-     * Used for the guest user, who should not be reachable via switch-user.
-     */
     public static PasswordHash sentinel() {
         return new PasswordHash(SENTINEL_VALUE);
     }
